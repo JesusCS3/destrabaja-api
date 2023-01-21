@@ -14,7 +14,7 @@ mongoose.connect(DB_URI, {useNewUrlParser: true, useUnifiedTopology: true}, (err
 
         // create server
         app.listen(port, () => {
-            console.log('Server running on http:localhost:3800');
+            console.log('Server running');
         });
     }
 });

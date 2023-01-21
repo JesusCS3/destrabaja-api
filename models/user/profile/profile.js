@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const profileSchema = new mongoose.Schema(
     {
-    imgProfile: {
+    profileImg: {
         type: String,
     },
     name: {
@@ -33,20 +33,20 @@ const profileSchema = new mongoose.Schema(
         type: String,
         required: true
     },
-    resumesummary: {
+    resumeSummary: {
         type: String
     },
-    videoProfile: {
+    profileVideo: {
         type: String
     },
-    resumesummaryFile: {
+    resumeSummaryFile: {
         type: String
     },
     previousWork: {
         type: String
     },
-    rfcCheck: {
-        type: Boolean,
+    publishCheck: {
+        type: String,
         required: true
     },
     rfc: {

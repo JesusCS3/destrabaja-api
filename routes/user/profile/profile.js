@@ -17,6 +17,8 @@ router.post('/profile', mdAuth.ensureAuth, profileController.saveProfile);
 router.delete('/profile/:id?', mdAuth.ensureAuth, profileController.deleteProfile);
 /* *** update profile data *** */
 router.put('/update-profile/:id', mdAuth.ensureAuth, profileController.updateProfile);
+/* *** get profile *** */
+router.get('/get-profile/:id?', mdAuth.ensureAuth, profileController.getProfile);
 /* *** upload img file *** */
 router.post('/upload-img-profile/:id', [mdAuth.ensureAuth, mdUploadImg], profileController.uploadImage);
 /* *** get img file *** */

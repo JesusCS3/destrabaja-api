@@ -7,6 +7,7 @@ const User = require('../../models/user/user');
 const Follow = require('../../models/user/follow/follow');
 const Service = require('../../models/publish-now/publish-service/service');
 const jwt = require('../../services/jwt');
+const user = require('../../models/user/user');
 
 
 /* *** test *** */
@@ -24,37 +25,37 @@ function home (req, res) {
 
 /* *** signup *** */
 function saveUser (req, res) {
-  var params = req.body;
-  var user = new User();
+  let params = req.body;
+  let user = new User();
 
-  if (params.username && params.email && params.password) {
+  if (params.email && params.username && params.password) {
     user.username = params.username;
     user.email = params.email;
-    user.image = null;
+    user.phone = params.phone;
 
     /* *** control duplicate users *** */
     User.find({
       $or: [
-        {username: user.username.toLowerCase()},
+        {username: user.username},
         {email: user.email.toLowerCase()}
       ]
     }).exec((err, users) => {
-      if(err) return res.status(500).send({message: 'Error in user request'});
+      if(err) return res.status(500).send({message: 'Error en la solicitud del usuario.'});
 
       if(users && users.length >= 1){
-        return res.status(200).send({message: 'The email or username already exists'});
+        return res.status(200).send({message: 'Ya existe una cuenta con el usuario o correo electrónico indicado.'});
       }else{
         bcrypt.hash(params.password, null, null, (err, hash) => {
           user.password = hash;
 
           /* *** store data *** */
           user.save((err, userStored) =>{
-            if(err) return res.status(500).send({message: 'Error saving user'});
+            if(err) return res.status(500).send({message: 'Error al guardar el usuario.'});
 
             if(userStored){
               res.status(200).send({user: userStored});
             }else{
-              res.status(404).send({message: 'User has not registered'});
+              res.status(404).send({message: 'El usuario no se ha registrado.'});
             }
           });
         });
@@ -62,20 +63,20 @@ function saveUser (req, res) {
     });
   }else{
     res.status(200).send({
-      message: 'Please fill all the fields!'
+      message: 'Por favor, rellene todos los campos obligatorios!'
     });  
   }
 }
 
 /* *** signin *** */
 function loginUser (req, res) {
-  var params = req.body;
+  let params = req.body;
   
-  var email = params.email;
-  var password = params.password;
+  let email = params.email;
+  let password = params.password;
 
   User.findOne({email: email}, (err, user) => {
-    if(err) return res.status(500).send({message: 'Error in user request'});
+    if(err) return res.status(500).send({message: 'Error en la solicitud.'});
 
     if(user){
       bcrypt.compare(password, user.password, (err, check) => {
@@ -91,11 +92,11 @@ function loginUser (req, res) {
             return  res.status(200).send({user});
           }
         }else{
-          return res.status(404).send({message: 'User could not be identified'});
+          return res.status(404).send({message: 'Nombre de usuario o contraseña incorrectos.'});
         }
       });
     }else{
-      return res.status(404).send({message: 'User could not be identified!!'});
+      return res.status(404).send({message: 'No se ha podido identificar al usuario.'});
     }
 
   });
@@ -103,12 +104,12 @@ function loginUser (req, res) {
 
 /* *** get user *** */
 function getUser(req, res) {
-  var userId = req.params.id;
+  let userId = req.params.id;
 
   User.findById(userId, (err, user) => {
-    if (err) return res.status(500).send({message: 'Error in request'});
+    if (err) return res.status(500).send({message: 'Error en la solicitud.'});
 
-    if (!user) return res.status(404).send({message: 'User not found'});
+    if (!user) return res.status(404).send({message: 'Usuario no encontrado.'});
 
     followThisUser(req.user.sub, userId).then((value) =>{
       user.password = undefined;
@@ -145,19 +146,19 @@ async function followThisUser(identityUserId, userId) {
 
 /* *** get paginated users *** */
 function getUsers (req, res) {
-  var identityUserId = req.user.sub;
+  let identityUserId = req.user.sub;
 
-  var page = 1;
+  let page = 1;
   if (req.params.page){
     page = req.params.page;
   }
 
-  var itemsPerPage = 5;
+  let itemsPerPage = 5;
 
   User.find().sort('_id').paginate(page, itemsPerPage, (err, users, total) => {
-    if (err) return res.status(500).send({message: 'Error in request'});
+    if (err) return res.status(500).send({message: 'Error en la solicitud.'});
 
-    if (!users) return res.status(404).send({message: 'No available users'});
+    if (!users) return res.status(404).send({message: 'No hay usuarios disponibles.'});
 
     followUserIds(identityUserId).then((value) => {
       return res.status(200).send({
@@ -246,28 +247,46 @@ async function getCount(userId){
 
 /* *** update user data *** */
 function updateUser (req, res) {
-  var userId = req.params.id;
-  var update = req.body;
+  let userId = req.params.id;
+  let update = req.body;
+
 
   /* *** delete password *** */
   delete update.password;
 
   if (userId != req.user.sub){
-    return res.status(500).send({message: 'Does not have permission to update user data'});
+    return res.status(500).send({message: 'No tiene permiso para actualizar los datos del usuario.'});
   }
+ console.log(update);
+  /* *** control duplicate users *** */
+  User.find({
+    $or: [
+      {username: update.username},
+      {email: update.email.toLowerCase()}
+    ]
+  }).exec((err, users) => {
+    if(err) return res.status(500).send({message: 'Error en la solicitud del usuario.'});
 
-  User.findByIdAndUpdate(userId, update, {new: true}, (err, userUpdated) => {
-    if (err) return res.status(500).send({message: 'Error in request'});
+    let linkedEmail = false;
+    users.forEach((user) => {
+      if(user && user._id != userId) linkedEmail = true;
+    });
 
-    if (!userUpdated) return res.status(404).send({message: 'Could not update user data'});
+    if(linkedEmail) return res.status(200).send({message: 'Ya existe una cuenta con el usuario o correo electrónico indicado.'});
 
-    return res.status(200).send({user: userUpdated});
+    User.findByIdAndUpdate(userId, update, {new: true}, (err, userUpdated) => {
+      if (err) return res.status(500).send({message: 'Error en la solicitud.'});
+  
+      if (!userUpdated) return res.status(404).send({message: 'No se han podido actualizar los datos del usuario.'});
+  
+      return res.status(200).send({user: userUpdated});
+    });
   });
 }
 
 /* *** upload img file *** */
 function uploadImage (req, res){
-  var userId = req.params.id;
+  let userId = req.params.id;
 
   if (req.files){
     let filePath = req.files.image.path;

@@ -128,42 +128,68 @@ function updateService (req, res) {
   });
 }
 
-function uploadImageTwo (req, res, nex) {
+function uploadImage (req, res) {
   let serviceId = req.params.id;
 
-  if(req.files && req.files.uploads && Array.isArray(req.files.uploads)) { // suponiendo que espero el input llamado 'uploads'
-    let images = req.files.uploads.map(file => {
-      // operaciones con cada elemento file para obtener el nombre del archivo y guardarlo en una lista
-      console.log(req.files.uploads);
-      return fileName;
+  if(req.files && req.files.images && Array.isArray(req.files.images)) { 
+    /* *** if images are received *** */
+    let images = req.files.images.map(file => {
+      
+      //console.log(req.files.images);
+      let filePath = file.path;
+      let fileSplit = filePath.split('\\');
+      let fileName = fileSplit[4];
+      let extSplit = fileName.split('\.');
+      let fileExt = extSplit[1];
+
+      /* *** validate extension *** */
+      if(fileExt == 'png' || fileExt == 'jpg' || fileExt == 'jpeg' || fileExt == 'gif'){
+        return fileName;
+      }else{
+        removeFilesOfUploads(res, filePath, 'Error deleting file with wrong extension');
+        fileName = null;
+        return fileName;
+      }  
     });
-    Project.findByIdAndUpdate(id, { $push: {images: {$each: images} } }, callback);
-    // ...
-  } else if(req.files && req.files.uploads) { // caso de un único archivo
-    // lógica para obtener el nombre del archivo
-    // let imageName = ...
-    Project.findByIdAndUpdate(id, { $push: {images: imageName} }, callback);
-    //..
-  } else {
-    // caso de no recibir imágenes
-  }
-}
 
-/* *** upload img file *** */
-function uploadImage (req, res){
-  let serviceId = req.params.id;
+    /* *** create new array without null elements *** */
+    let newImages = images.filter(image => image != null);
 
-  if (req.files){
-    console.log(req.files);
+    if (newImages.length <= 3){
+      /* *** update images *** */
+      Service. findOne({'user': req.user.sub, '_id': serviceId}).exec().then((service) => {
+        if (service){
+          Service.findByIdAndUpdate(serviceId, {imgServiceOne: newImages[0], imgServiceTwo: newImages[1], imgServiceThree: newImages[2]}, {new: true}, (err, serviceUpdated) => {
+            if (err) return res.status(500).send({message: 'Error in request'});
+
+            if (!serviceUpdated) return res.status(404).send({message: 'Could not update user data'});
+
+            return res.status(200).send({service: serviceUpdated});
+          });
+        }else{
+          return res.status(500).send({message: 'Does not have permission to update service data'});
+        }
+      });
+    }else{
+      /* *** delete files for exceeding the allowed limit *** */
+      newImages.map(file => {
+        let filePath = './uploads/publish-now/publish-service/img/' + file;
+        removeFilesOfUploads(res, filePath, 'Error when deleting files, due to exceeding the allowed limit');
+      });
+
+      return res.status(500).send({message: 'Exceeded image limit'});
+    } 
+  } else if(req.files && req.files.images) { 
+    /* *** if an image is received *** */
     let filePath = req.files.images.path;
-    console.log(filePath);
     let fileSplit = filePath.split('\\');
-    let fileName = fileSplit[2];
+    let fileName = fileSplit[4];
     let extSplit = fileName.split('\.');
     let fileExt = extSplit[1];
-
+    
+    /* *** validate extension *** */
     if(fileExt == 'png' || fileExt == 'jpg' || fileExt == 'jpeg' || fileExt == 'gif'){
-      Service. findOne({'user': request.user.sub, '_id': serviceId}).exec((err, service) => {
+      Service. findOne({'user': req.user.sub, '_id': serviceId}).exec().then((service) => {
         if (service){
           /* *** update image *** */
           Service.findByIdAndUpdate(serviceId, {imgServiceOne: fileName}, {new: true}, (err, serviceUpdated) => {
@@ -180,17 +206,10 @@ function uploadImage (req, res){
     }else{
       return removeFilesOfUploads(res, filePath, 'Invalid extension');
     }
-
-  }else{
-    return res.status(200).send({message: 'No image uploaded'});
+  } else {
+    /* *** if no images are received * ***/
+    return res.status(404).send({message: 'There are no images'});
   }
-}
-
-/* *** remove img file of uploads *** */
-function removeFilesOfUploads (res, filePath, message){
-  fs.unlink(filePath, (err) =>{
-    return res.status(200).send({message: message});
-  });
 }
 
 /* *** get img file *** */
@@ -204,6 +223,13 @@ function getImageFile (req, res){
     }else{
       res.status(200).send({message: 'Image file not found'});
     }
+  });
+}
+
+/* *** remove file of uploads *** */
+function removeFilesOfUploads (res, filePath, message){
+  fs.unlink(filePath, (err) =>{
+    if (err) return res.status(200).send({message: message});
   });
 }
 
@@ -264,9 +290,6 @@ module.exports = {
     deleteService,
     updateService,
     uploadImage,
-
-    uploadImageTwo,
-
     getImageFile,
     uploadVideo,
     getVideoFile

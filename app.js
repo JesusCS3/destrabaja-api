@@ -8,6 +8,7 @@ const userRoutes = require('./routes/user/user');
 const followRoutes = require('./routes/user/follow/follow');
 const profileRoutes = require('./routes/user/profile/profile');
 const serviceRoutes = require('./routes/publish-now/publish-service/service');
+const servicePlansRoutes = require('./routes/publish-now/publish-service/servicePlans');
 const projectRoutes = require('./routes/publish-now/publish-project/project');
 const messageRoutes = require('./routes/user/message/message');
 
@@ -30,6 +31,7 @@ app.use('/api', userRoutes);
 app.use('/api', followRoutes);
 app.use('/api', profileRoutes);
 app.use('/api', serviceRoutes);
+app.use('/api', servicePlansRoutes);
 app.use('/api', projectRoutes);
 app.use('/api', messageRoutes);
 

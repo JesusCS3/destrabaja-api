@@ -29,6 +29,15 @@ const projectSchema = new mongoose.Schema(
     imgProjectThree: {
         type: String
     },
+    fileProjectOne: {
+        type: String
+    },
+    fileProjectTwo: {
+        type: String
+    },
+    fileProjectThree: {
+        type: String
+    },
     shortDescription: {
         type: String,
         required: true
@@ -41,8 +50,8 @@ const projectSchema = new mongoose.Schema(
         type: Number,
         required: true
     },
-    deliveryTime: {
-        type: Number
+    deliveryDate: {
+        type: String
     },
     createdAt: {
         type: String

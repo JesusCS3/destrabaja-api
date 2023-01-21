@@ -20,8 +20,8 @@ function saveProfile (req, res) {
   let profile = new Profile();
 
   if (params.name && params.fatherLastName && params.motherLastName && params.gender 
-    && params.dateBirth && params.contry && params.city && params.rfcCheck){
-    profile.imgProfile = null;
+    && params.dateBirth && params.contry && params.city && params.publishCheck){
+    profile.profileImg = null;
     profile.name = params.name;
     profile.fatherLastName = params.fatherLastName;
     profile.motherLastName = params.motherLastName;
@@ -29,44 +29,55 @@ function saveProfile (req, res) {
     profile.dateBirth = params.dateBirth;
     profile.contry = params.contry;
     profile.city = params.city;
-    profile.resumesummary = params.resumesummary;
-    profile.videoProfile = null;
-    profile.resumesummaryFile = null;
+    profile.resumeSummary = params.resumeSummary;
+    profile.profileVideo = null;
+    profile.resumeSummaryFile = null;
     profile.previousWork = null;
-    profile.rfcCheck = params.rfcCheck;
+    profile.publishCheck = params.publishCheck;
     profile.rfc = params.rfc;
     profile.user = req.user.sub;
     profile.createdAt = moment().unix();
 
     /* *** control duplicate users *** */
     Profile.find({user: profile.user}).exec((err, users) => {
-      if(err) return res.status(500).send({message: 'Error in user request'});
+      if(err) return res.status(500).send({message: 'Error en la solicitud'});
 
       if(users && users.length >= 1){
-        return res.status(200).send({message: 'User already has a profile'});
+        return res.status(200).send({message: 'El usuario ya tiene un perfil'});
       }else{
         /* *** control duplicate rfc *** */
-        Profile.find({rfc: profile.rfc.toUpperCase()}).exec((err, rfcs) => {
-          if(err) return res.status(500).send({message: 'Error in user request'});
+        if (profile.rfc.toUpperCase().length >= 12 && profile.rfc.toUpperCase().length <= 13){
+          Profile.find({rfc: profile.rfc.toUpperCase()}).exec((err, rfcs) => {
+            if(err) return res.status(500).send({message: 'Error en la solicitud'});
+  
+            if(rfcs && rfcs.length >= 1){
+              return res.status(200).send({message: 'El RFC ya existe'});
+            }else{
+              profile.save((err, profileStored) => {
+                if (err) return res.status(500).send({message: '¡Error al guardar el perfil!'});
+          
+                if (!profileStored) return res.status(404).send({message: '¡No se ha guardado el perfil!'});
+          
+                return res.status(200).send({profile: profileStored});
+              });
+            }
+          });
+        }
 
-          if(rfcs && rfcs.length >= 1){
-            return res.status(200).send({message: 'The RFC already exists'});
-          }else{
-            profile.save((err, profileStored) => {
-              if (err) return res.status(500).send({message: 'Error saving profile'});
-        
-              if (!profileStored) return res.status(404).send({message: 'Profile has not been stored'});
-        
-              return res.status(200).send({profile: profileStored});
-            });
-          }
+        profile.save((err, profileStored) => {
+          if (err) return res.status(500).send({message: '¡Error al guardar el perfil!'});
+    
+          if (!profileStored) return res.status(404).send({message: '¡No se ha guardado el perfil!'});
+    
+          return res.status(200).send({profile: profileStored});
         });
+        
       }
     });
 
   }else{
     return res.status(200).send({
-      message: 'Please fill all the fields required!'
+      message: '¡Rellene todos los campos obligatorios!'
     }); 
   }
 }
@@ -81,6 +92,19 @@ function deleteProfile (req, res) {
     if(!profileRemoved) return res.status(404).send({message: 'Could not delete profile'});
 
     return res.status(200).send({message: 'Profile deleted successfully'});
+  });
+}
+
+/* *** get profile *** */
+function getProfile (req, res) {
+  let userId = req.user.sub;
+
+  Profile.findOne({user: userId}, (err, profile) => {
+    if (err) return res.status(500).send({message: 'Error al devolver el perfil'});
+
+    if(!profile) return res.status(404).send({message: 'El perfil no existe'});
+
+    return res.status(200).send({profile});
   });
 }
 
@@ -117,26 +141,51 @@ function uploadImage (req, res){
     let fileExt = extSplit[1];
 
     if(fileExt == 'png' || fileExt == 'jpg' || fileExt == 'jpeg' || fileExt == 'gif'){
+
       Profile. findOne({'user': req.user.sub, '_id': profileId}).exec().then((profile) => {
+
         if (profile){
-          /* *** update image *** */
-          Profile.findByIdAndUpdate(profileId, {imgProfile: fileName}, {new: true}, (err, profileUpdated) => {
-            if (err) return res.status(500).send({message: 'Error in request'});
 
-            if (!profileUpdated) return res.status(404).send({message: 'Could not update data'});
+          if (profile.profileImg){
 
-            return res.status(200).send({profile: profileUpdated});
-          });
+            let previousImg = './uploads/users/profile/img/' + profile.profileImg;
+
+            fs.unlink(previousImg, (err) =>{
+              if (err) return res.status(200).send({message: err});
+            });
+
+            /* *** update image *** */
+            Profile.findByIdAndUpdate(profileId, {profileImg: fileName}, {new: true}, (err, profileUpdated) => {
+              
+              if (err) return res.status(500).send({message: 'Error en la solicitud.'});
+
+              if (!profileUpdated) return res.status(404).send({message: '¡No se ha podido actualizar la imagen del perfil!'});
+
+              return res.status(200).send({profile: profileUpdated});
+            });
+          }
+
+          if (!profile.profileImg) {
+            /* *** update image *** */
+            Profile.findByIdAndUpdate(profileId, {profileImg: fileName}, {new: true}, (err, profileUpdated) => {
+              
+              if (err) return res.status(500).send({message: 'Error en la solicitud.'});
+
+              if (!profileUpdated) return res.status(404).send({message: '¡No se ha podido actualizar la imagen del perfil!'});
+
+              return res.status(200).send({profile: profileUpdated});
+            });
+          }
         }else{
-          return removeFilesOfUploads(res, filePath, 'Does not have permission to update profile image');
+          return removeFilesOfUploads(res, filePath, '¡No tiene permiso para actualizar la imagen de perfil!');
         }
       });
     }else{
-      return removeFilesOfUploads(res, filePath, 'Invalid extension');
+      return removeFilesOfUploads(res, filePath, '¡Extensión no válida!');
     }
 
   }else{
-    return res.status(200).send({message: 'No image uploaded'});
+    return res.status(200).send({message: 'No se ha cargado ninguna imagen.'});
   }
 }
 
@@ -176,7 +225,7 @@ function uploadVideo (req, res){
       Profile. findOne({'user': req.user.sub, '_id': profileId}).exec().then((profile) => {
         if (profile){
           /* *** update video *** */
-          Profile.findByIdAndUpdate(profileId, {videoProfile: fileName}, {new: true}, (err, profileUpdated) => {
+          Profile.findByIdAndUpdate(profileId, {profileVideo: fileName}, {new: true}, (err, profileUpdated) => {
             if (err) return res.status(500).send({message: 'Error in request'});
 
             if (!profileUpdated) return res.status(404).send({message: 'Could not update data'});
@@ -313,6 +362,7 @@ module.exports = {
     saveProfile,
     deleteProfile,
     updateProfile,
+    getProfile,
     uploadImage,
     getImageFile,
     uploadVideo,

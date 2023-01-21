@@ -22,10 +22,6 @@ router.delete('/service/:id?', mdAuth.ensureAuth, serviceController.deleteServic
 router.put('/update-service/:id', mdAuth.ensureAuth, serviceController.updateService);
 /* *** upload img file *** */
 router.post('/upload-img-service/:id', [mdAuth.ensureAuth, mdUploadImg], serviceController.uploadImage);
-
-/* *** upload img file test*** */
-router.post('/upload-img-two-service/:id', [mdAuth.ensureAuth, mdUploadImg], serviceController.uploadImageTwo);
-
 /* *** get img file *** */
 router.get('/get-img-service/:images', serviceController.getImageFile);
 /* *** upload video file *** */
