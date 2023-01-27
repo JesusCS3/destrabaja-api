@@ -7,7 +7,6 @@ const Project = require('../../../models/publish-now/publish-project/project');
 const RequirementsProject = require('../../../models/publish-now/publish-project/requirement-project');
 const User = require('../../../models/user/user');
 const Follow = require('../../../models/user/follow/follow');
-const { remove } = require('../../../models/user/user');
 
 /* *** test *** */
 function test (req, res) {

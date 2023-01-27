@@ -36,6 +36,9 @@ const serviceSchema = new mongoose.Schema(
     longDescription: {
         type: String
     },
+    status: {
+        type: String
+    },
     createdAt: {
         type: String
     },

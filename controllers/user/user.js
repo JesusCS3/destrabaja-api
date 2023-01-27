@@ -63,7 +63,7 @@ function saveUser (req, res) {
     });
   }else{
     res.status(200).send({
-      message: 'Por favor, rellene todos los campos obligatorios!'
+      message: '¡Rellene todos los campos obligatorios!'
     });  
   }
 }

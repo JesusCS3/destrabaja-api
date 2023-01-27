@@ -7,7 +7,8 @@ const mdAuth = require('../../../middlewares/authenticated');
 const multipart = require('connect-multiparty');
 let mdUploadImg = multipart({uploadDir: './uploads/users/profile/img'});
 let mdUploadVideo = multipart({uploadDir: './uploads/users/profile/video'});
-let mdUploadPdf = multipart({uploadDir: './uploads/users/profile/pdf'});
+let mdUploadResumeSummary = multipart({uploadDir: './uploads/users/profile/pdf/resumeSummaryFile'});
+let mdUploadPreviousWork = multipart({uploadDir: './uploads/users/profile/pdf/previousWork'});
 
 /* *** test *** */
 router.get('/test-profile', mdAuth.ensureAuth, profileController.test);
@@ -28,11 +29,11 @@ router.post('/upload-video-profile/:id', [mdAuth.ensureAuth, mdUploadVideo], pro
 /* *** get video file *** */
 router.get('/get-video-profile/:videoFile', profileController.getVideoFile);
 /* *** upload resumesummary file *** */
-router.post('/upload-resumesummary-profile/:id', [mdAuth.ensureAuth, mdUploadPdf], profileController.uploadResumesummary);
+router.post('/upload-resumesummary-profile/:id', [mdAuth.ensureAuth, mdUploadResumeSummary], profileController.uploadResumesummary);
 /* *** get resumesummary file *** */
 router.get('/get-resumesummary-profile/:resumesummaryFile', profileController.getResumesummaryFile);
 /* *** upload resumesummary file *** */
-router.post('/upload-previous-work-profile/:id', [mdAuth.ensureAuth, mdUploadPdf], profileController.uploadPreviousWork);
+router.post('/upload-previous-work-profile/:id', [mdAuth.ensureAuth, mdUploadPreviousWork], profileController.uploadPreviousWork);
 /* *** get resumesummary file *** */
 router.get('/get-previous-work-profile/:previousWork', profileController.getPreviousWorkFile);
 

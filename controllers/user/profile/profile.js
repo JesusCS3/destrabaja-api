@@ -134,6 +134,7 @@ function uploadImage (req, res){
   let profileId = req.params.id;
 
   if (req.files){
+    console.log(req.files);
     let filePath = req.files.imgProfile.path;
     let fileSplit = filePath.split('\\');
     let fileName = fileSplit[4];
@@ -160,7 +161,7 @@ function uploadImage (req, res){
               if (err) return res.status(500).send({message: 'Error en la solicitud.'});
 
               if (!profileUpdated) return res.status(404).send({message: '¡No se ha podido actualizar la imagen del perfil!'});
-
+              console.log(profileUpdated);
               return res.status(200).send({profile: profileUpdated});
             });
           }
@@ -224,14 +225,35 @@ function uploadVideo (req, res){
     if(fileExt == 'mp4' || fileExt == 'mov' || fileExt == 'wmv' || fileExt == 'avi'){
       Profile. findOne({'user': req.user.sub, '_id': profileId}).exec().then((profile) => {
         if (profile){
-          /* *** update video *** */
-          Profile.findByIdAndUpdate(profileId, {profileVideo: fileName}, {new: true}, (err, profileUpdated) => {
-            if (err) return res.status(500).send({message: 'Error in request'});
+          if (profile.profileVideo){
 
-            if (!profileUpdated) return res.status(404).send({message: 'Could not update data'});
+            let previousVideo = './uploads/users/profile/video/' + profile.profileVideo;
 
-            return res.status(200).send({profile: profileUpdated});
-          });
+            fs.unlink(previousVideo, (err) =>{
+              if (err) return res.status(200).send({message: err});
+            });
+ 
+            /* *** update video *** */
+            Profile.findByIdAndUpdate(profileId, {profileVideo: fileName}, {new: true}, (err, profileUpdated) => {
+              if (err) return res.status(500).send({message: 'Error in request'});
+
+              if (!profileUpdated) return res.status(404).send({message: 'Could not update data'});
+
+              return res.status(200).send({profile: profileUpdated});
+            });
+          }
+
+          if (!profile.profileVideo){
+            /* *** update video *** */
+            Profile.findByIdAndUpdate(profileId, {profileVideo: fileName}, {new: true}, (err, profileUpdated) => {
+              if (err) return res.status(500).send({message: 'Error in request'});
+
+              if (!profileUpdated) return res.status(404).send({message: 'Could not update data'});
+
+              return res.status(200).send({profile: profileUpdated});
+            });
+          }
+          
         }else{
           return removeFilesOfUploads(res, filePath, 'Does not have permission to update profile video');
         }
@@ -266,21 +288,40 @@ function uploadResumesummary (req, res){
   if (req.files){
     let filePath = req.files.resumesummaryFile.path;
     let fileSplit = filePath.split('\\');
-    let fileName = fileSplit[4];
+    let fileName = fileSplit[5];
     let extSplit = fileName.split('\.');
     let fileExt = extSplit[1];
 
     if(fileExt == 'pdf'){
       Profile. findOne({'user': req.user.sub, '_id': profileId}).exec().then((profile) => {
         if (profile){
-          /* *** update resumesummary *** */
-          Profile.findByIdAndUpdate(profileId, {resumesummaryFile: fileName}, {new: true}, (err, profileUpdated) => {
-            if (err) return res.status(500).send({message: 'Error in request'});
+          if (profile.resumeSummaryFile){
 
-            if (!profileUpdated) return res.status(404).send({message: 'Could not update data'});
+            let previousResumesummaryFile = './uploads/users/profile/pdf/resumeSummaryFile/' + profile.resumeSummaryFile;
 
-            return res.status(200).send({profile: profileUpdated});
-          });
+            fs.unlink(previousResumesummaryFile, (err) =>{
+              if (err) return res.status(200).send({message: err});
+            });
+            /* *** update resumesummary *** */
+            Profile.findByIdAndUpdate(profileId, {resumeSummaryFile: fileName}, {new: true}, (err, profileUpdated) => {
+              if (err) return res.status(500).send({message: 'Error in request'});
+
+              if (!profileUpdated) return res.status(404).send({message: 'Could not update data'});
+
+              return res.status(200).send({profile: profileUpdated});
+            });
+          }
+
+          if (!profile.resumeSummaryFile){
+            /* *** update resumesummary *** */
+            Profile.findByIdAndUpdate(profileId, {resumeSummaryFile: fileName}, {new: true}, (err, profileUpdated) => {
+              if (err) return res.status(500).send({message: 'Error in request'});
+
+              if (!profileUpdated) return res.status(404).send({message: 'Could not update data'});
+
+              return res.status(200).send({profile: profileUpdated});
+            });
+          }
         }else{
           return removeFilesOfUploads(res, filePath, 'Does not have permission to update resumesummary file');
         }
@@ -297,7 +338,7 @@ function uploadResumesummary (req, res){
 /* *** get resumesummary file *** */
 function getResumesummaryFile (req, res){
   let resumesummaryFile = req.params.resumesummaryFile;
-  let pathFile = './uploads/users/profile/pdf/' + resumesummaryFile;
+  let pathFile = './uploads/users/profile/pdf/resumeSummaryFile/' + resumesummaryFile;
 
   fs.exists(pathFile, (exists) =>{
     if (exists){
@@ -315,21 +356,41 @@ function uploadPreviousWork (req, res){
   if (req.files){
     let filePath = req.files.previousWork.path;
     let fileSplit = filePath.split('\\');
-    let fileName = fileSplit[4];
+    let fileName = fileSplit[5];
     let extSplit = fileName.split('\.');
     let fileExt = extSplit[1];
 
     if(fileExt == 'pdf'){
       Profile. findOne({'user': req.user.sub, '_id': profileId}).exec().then((profile) => {
         if (profile){
-          /* *** update previous work *** */
-          Profile.findByIdAndUpdate(profileId, {previousWork: fileName}, {new: true}, (err, profileUpdated) => {
-            if (err) return res.status(500).send({message: 'Error in request'});
+          if (profile.previousWork){
 
-            if (!profileUpdated) return res.status(404).send({message: 'Could not update data'});
+            let previousWorkFile = './uploads/users/profile/pdf/previousWork/' + profile.previousWork;
 
-            return res.status(200).send({profile: profileUpdated});
-          });
+            fs.unlink(previousWorkFile, (err) =>{
+              if (err) return res.status(200).send({message: err});
+            });
+
+            /* *** update previous work *** */
+            Profile.findByIdAndUpdate(profileId, {previousWork: fileName}, {new: true}, (err, profileUpdated) => {
+              if (err) return res.status(500).send({message: 'Error in request'});
+
+              if (!profileUpdated) return res.status(404).send({message: 'Could not update data'});
+
+              return res.status(200).send({profile: profileUpdated});
+            });
+          }
+
+          if (!profile.previousWork){
+            /* *** update previous work *** */
+            Profile.findByIdAndUpdate(profileId, {previousWork: fileName}, {new: true}, (err, profileUpdated) => {
+              if (err) return res.status(500).send({message: 'Error in request'});
+
+              if (!profileUpdated) return res.status(404).send({message: 'Could not update data'});
+
+              return res.status(200).send({profile: profileUpdated});
+            });
+          }
         }else{
           return removeFilesOfUploads(res, filePath, 'Does not have permission to update previous work file');
         }
@@ -346,7 +407,7 @@ function uploadPreviousWork (req, res){
 /* *** get previous work file *** */
 function getPreviousWorkFile (req, res){
   let previousWork = req.params.previousWork;
-  let pathFile = './uploads/users/profile/pdf/' + previousWork;
+  let pathFile = './uploads/users/profile/pdf/previousWork/' + previousWork;
 
   fs.exists(pathFile, (exists) =>{
     if (exists){
