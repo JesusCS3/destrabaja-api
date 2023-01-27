@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const app = require('./app');
 const port = 3800;
 
-const DB_URI = 'mongodb+srv://JesusCS:Desarrollo29Mongo@jcscluster.5hq4xqy.mongodb.net/?retryWrites=true&w=majority/destrabaja_db'
+const DB_URI = 'mongodb+srv://JesusCS:Desarrollo29Mongo@jcscluster.5hq4xqy.mongodb.net/destrabaja_db'
 //const DB_URI = 'mongodb://127.0.0.1:27017/destrabaja_db';
 
 // connection database
