@@ -11,7 +11,7 @@ mongoose.connect(DB_URI, {useNewUrlParser: true, useUnifiedTopology: true}, (err
     if (err) {
         console.log('connection failed: ' + err);
     }else{
-        console.log('connection established');
+        console.log('connection established with database');
 
         // create server
         app.listen(port, () => {
