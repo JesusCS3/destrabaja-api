@@ -20,23 +20,11 @@ const projectSchema = new mongoose.Schema(
     videoProject: {
         type: String
     },
-    imgProjectOne: {
-        type: String
+    images: {
+        type:Array,
     },
-    imgProjectTwo: {
-        type: String
-    },
-    imgProjectThree: {
-        type: String
-    },
-    fileProjectOne: {
-        type: String
-    },
-    fileProjectTwo: {
-        type: String
-    },
-    fileProjectThree: {
-        type: String
+    filesProject: {
+        type:Array,
     },
     shortDescription: {
         type: String,
@@ -50,8 +38,14 @@ const projectSchema = new mongoose.Schema(
         type: Number,
         required: true
     },
+    checkDeliveryDate: {
+        type: String,
+    },
     deliveryDate: {
         type: String
+    },
+    requirement: {
+        type: Array
     },
     createdAt: {
         type: String

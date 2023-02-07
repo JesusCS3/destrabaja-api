@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const requirementProjectSchema = new mongoose.Schema(
     {
     requirement: {
-        type: String
+        type: Array
     },
     project: {
         type: mongoose.Schema.Types.ObjectId,

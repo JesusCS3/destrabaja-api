@@ -18,49 +18,35 @@ function test (req, res) {
 /* *** save project *** */
 async function saveProject (req, res) {
   let params = req.body;
+  console.log(params);
   let project = new Project();
   let requirementsProject = new RequirementsProject();
 
-  if (params.name && params.category && params.subcategory && params.shortDescription){
-    project.name = params.name;
-    project.hastags = params.hastags;
-    project.category = params.category;
-    project.subcategory = params.subcategory;
+  if (params.generalInfo.name && params.generalInfo.category && params.generalInfo.subcategory
+    && params.description.shortDescription){
+    project.name = params.generalInfo.name;
+    project.hastags = params.generalInfo.hastags;
+    project.category = params.generalInfo.category;
+    project.subcategory = params.generalInfo.subcategory;
     project.videoProject = null;
-    project.imgProjectOne = null;
-    project.imgProjectTwo = null;
-    project.imgProjectThree = null;
-    project.fileProjectOne = null;
-    project.fileProjectTwo = null;
-    project.fileProjectThree = null;
-    project.shortDescription = params.shortDescription;
-    project.longDescription = params.longDescription;
-    project.budget = params.budget;
-    project.deliveryDate = params.deliveryDate;
+    project.images = null;
+    project.filesProject = null;
+    project.shortDescription = params.description.shortDescription;
+    project.longDescription = params.description.longDescription;
+    project.budget = params.features.budget;
+    project.checkDeliveryDate = params.features.checkDeliveryDate;
+    project.deliveryDate = params.features.deliveryDate;
+    project.requirement = params.requirements.requirement;
     project.createdAt = moment().unix();
     project.user = req.user.sub;
 
-    let projectPublished = await project.save().then((projectStored) => {
-      return projectStored;
-    }).catch((err) => {
-      return handleError(err);
+    project.save((err, projectStored) => {
+      if (err) return res.status(500).send({message: '¡Error al guardar el proyecto!'});
+
+      if (!projectStored) return res.status(404).send({message: '¡No se ha guardado el proyecto!'});
+
+      return res.status(200).send({project: projectStored});
     });
-
-    requirementsProject.requirement = params.requirement;
-    requirementsProject.project = project._id;
-
-    let requirementsPublished = await requirementsProject.save().then((requirementsProjectStored) => {      
-      return requirementsProjectStored;
-    }).catch((err) => {
-      return handleError(err);
-    });
-
-    return res.status(200).send(
-      { 
-        project: projectPublished,
-        requirementsProject: requirementsPublished 
-      }
-    );
 
   }else{
     return res.status(200).send({
@@ -185,7 +171,7 @@ async function updateProject (req, res) {
 /* *** upload img file *** */
 function uploadImage (req, res){
   let projectId = req.params.id;
-
+  console.log(req.files.images);
   if(req.files && req.files.images && Array.isArray(req.files.images)) { 
     /* *** if images are received *** */
     let images = req.files.images.map(file => {
@@ -211,75 +197,28 @@ function uploadImage (req, res){
     let newImages = images.filter(image => image != null);
 
     if (newImages.length <= 3){
+      /* *** update images *** */
       Project. findOne({'user': req.user.sub, '_id': projectId}).exec().then((project) => {
-
         if (project){
+          Project.findByIdAndUpdate(projectId, {images: newImages}, {new: true}, (err, projectUpdated) => {
+            if (err) return res.status(500).send({message: 'Error en la solicitud.'});
 
-          if (project.imgProjectOne){
+            if (!projectUpdated) return res.status(404).send({message: '¡No se ha podido actualizar la imagen del proyecto!'});
 
-            let previousImg = './uploads/publish-now/publish-project/img/' + project.imgProjectOne;
-
-            fs.unlink(previousImg, (err) =>{
-              if (err) return res.status(200).send({message: err});
-            });
-
-            let previousImgTwo = './uploads/publish-now/publish-project/img/' + project.imgProjectTwo;
-
-            fs.unlink(previousImgTwo, (err) =>{
-              if (err) return res.status(200).send({message: err});
-            });
-
-            let previousImgThree = './uploads/publish-now/publish-project/img/' + project.imgProjectThree;
-
-            fs.unlink(previousImgThree, (err) =>{
-              if (err) return res.status(200).send({message: err});
-            });
-
-            /* *** update images *** */
-            Project. findOne({'user': req.user.sub, '_id': projectId}).exec().then((project) => {
-              if (project){
-                Project.findByIdAndUpdate(projectId, {imgProjectOne: newImages[0], imgProjectTwo: newImages[1], imgProjectThree: newImages[2]}, {new: true}, (err, projectUpdated) => {
-                  if (err) return res.status(500).send({message: 'Error en la solicitud.'});
-
-                  if (!projectUpdated) return res.status(404).send({message: '¡No se ha podido actualizar la imagen del proyecto!'});
-
-                  return res.status(200).send({project: projectUpdated});
-                });
-              }else{
-                return res.status(500).send({message: '¡No tiene permiso para actualizar la imagen del proyecto!'});
-              }
-            });
-          }
-
-          if (!project.imgProjectOne) {
-            /* *** update image *** */
-            Project. findOne({'user': req.user.sub, '_id': projectId}).exec().then((project) => {
-              if (project){
-                Project.findByIdAndUpdate(projectId, {imgProjectOne: newImages[0], imgProjectTwo: newImages[1], imgProjectThree: newImages[2]}, {new: true}, (err, projectUpdated) => {
-                  if (err) return res.status(500).send({message: 'Error en la solicitud.'});
-
-                  if (!projectUpdated) return res.status(404).send({message: '¡No se ha podido actualizar la imagen del proyecto!'});
-
-                  return res.status(200).send({project: projectUpdated});
-                });
-              }else{
-                return res.status(500).send({message: '¡No tiene permiso para actualizar la imagen del proyecto!'});
-              }
-            });
-          }
+            return res.status(200).send({project: projectUpdated});
+          });
         }else{
-          return removeFilesOfUploads(res, filePath, '¡No tiene permiso para actualizar la imagen de perfil!');
+          return res.status(500).send({message: '¡No tiene permiso para actualizar la imagen del proyecto!'});
         }
       });
-      
     }else{
       /* *** delete files for exceeding the allowed limit *** */
       newImages.map(file => {
         let filePath = './uploads/publish-now/publish-project/img/' + file;
-        removeFilesOfUploads(res, filePath, 'Error when deleting files, due to exceeding the allowed limit');
+        removeFilesOfUploads(res, filePath, 'Error al borrar archivos, por exceder el límite permitido');
       });
 
-      return res.status(500).send({message: 'Exceeded image limit'});
+      return res.status(500).send({message: 'Se ha superado el límite de imágenes'});
     } 
   } else if(req.files && req.files.images) { 
     /* *** if an image is received *** */
@@ -292,81 +231,34 @@ function uploadImage (req, res){
     /* *** validate extension *** */
     if(fileExt == 'png' || fileExt == 'jpg' || fileExt == 'jpeg' || fileExt == 'gif'){
 
+      /* *** update images *** */
       Project. findOne({'user': req.user.sub, '_id': projectId}).exec().then((project) => {
-
         if (project){
+          /* *** update image *** */
+          Project.findByIdAndUpdate(projectId, {images: fileName}, {new: true}, (err, projectUpdated) => {
+            if (err) return res.status(500).send({message: 'Error en la solicitud.'});
 
-          if (project.imgProjectOne){
+            if (!projectUpdated) return res.status(404).send({message: '¡No se ha podido actualizar la imagen del proyecto!'});
 
-            let previousImg = './uploads/publish-now/publish-project/img/' + project.imgProjectOne;
-
-            fs.unlink(previousImg, (err) =>{
-              if (err) return res.status(200).send({message: err});
-            });
-
-            let previousImgTwo = './uploads/publish-now/publish-project/img/' + project.imgProjectTwo;
-
-            fs.unlink(previousImgTwo, (err) =>{
-              if (err) return res.status(200).send({message: err});
-            });
-
-            let previousImgThree = './uploads/publish-now/publish-project/img/' + project.imgProjectThree;
-
-            fs.unlink(previousImgThree, (err) =>{
-              if (err) return res.status(200).send({message: err});
-            });
-
-            /* *** update images *** */
-            Project. findOne({'user': req.user.sub, '_id': projectId}).exec().then((project) => {
-              if (project){
-                /* *** update image *** */
-                Project.findByIdAndUpdate(projectId, {imgProjectOne: fileName}, {new: true}, (err, projectUpdated) => {
-                  if (err) return res.status(500).send({message: 'Error in request'});
-      
-                  if (!projectUpdated) return res.status(404).send({message: 'Could not update user data'});
-      
-                  return res.status(200).send({project: projectUpdated});
-                });
-              }else{
-                return removeFilesOfUploads(res, filePath, 'Does not have permission to update service image');
-              }
-            });
-          }
-
-          if (!project.imgProjectOne) {
-            /* *** update image *** */
-            Project. findOne({'user': req.user.sub, '_id': projectId}).exec().then((project) => {
-              if (project){
-                /* *** update image *** */
-                Project.findByIdAndUpdate(projectId, {imgProjectOne: fileName}, {new: true}, (err, projectUpdated) => {
-                  if (err) return res.status(500).send({message: 'Error in request'});
-      
-                  if (!projectUpdated) return res.status(404).send({message: 'Could not update user data'});
-      
-                  return res.status(200).send({project: projectUpdated});
-                });
-              }else{
-                return removeFilesOfUploads(res, filePath, 'Does not have permission to update service image');
-              }
-            });
-          }
+            return res.status(200).send({project: projectUpdated});
+          });
         }else{
-          return removeFilesOfUploads(res, filePath, '¡No tiene permiso para actualizar la imagen de perfil!');
+          return removeFilesOfUploads(res, filePath, '¡No tiene permiso para actualizar la imagen del proyecto!');
         }
       });
     }else{
-      return removeFilesOfUploads(res, filePath, 'Invalid extension');
+      return removeFilesOfUploads(res, filePath, 'Extensión no válida');
     }
   } else {
     /* *** if no images are received * ***/
-    return res.status(404).send({message: 'There are no images'});
+    return res.status(404).send({message: 'No hay imágenes'});
   }
 }
 
 /* *** remove img file of uploads *** */
 function removeFilesOfUploads (res, filePath, message){
   fs.unlink(filePath, (err) =>{
-    return res.status(200).send({message: message});
+    if (err) return res.status(200).send({message: message});
   });
 }
 
@@ -379,7 +271,7 @@ function getImageFile (req, res){
     if (exists){
       res.sendFile(path.resolve(pathFile));
     }else{
-      res.status(200).send({message: 'Image file not found'});
+      res.status(200).send({message: 'Archivo de imagen no encontrado'});
     }
   });
 }
@@ -387,7 +279,7 @@ function getImageFile (req, res){
 /* *** upload video file *** */
 function uploadVideo (req, res){
   let projectId = req.params.id;
-
+  console.log(req.files);
   if (req.files){
     let filePath = req.files.videoProject.path;
     let fileSplit = filePath.split('\\');
@@ -408,35 +300,35 @@ function uploadVideo (req, res){
  
             /* *** update video *** */
             Project.findByIdAndUpdate(projectId, {videoProject: fileName}, {new: true}, (err, projectUpdated) => {
-              if (err) return res.status(500).send({message: 'Error in request'});
+              if (err) return res.status(500).send({message: 'Error en la solicitud.'});
 
-              if (!projectUpdated) return res.status(404).send({message: 'Could not update data'});
+              if (!projectUpdated) return res.status(404).send({message: '¡No se ha podido actualizar el video del proyecto!'});
 
               return res.status(200).send({project: projectUpdated});
             });
           }
 
           if (!project.projectVideo){
-            /* *** update video *** */
-            Project.findByIdAndUpdate(projectId, {projectVideo: fileName}, {new: true}, (err, projectUpdated) => {
-              if (err) return res.status(500).send({message: 'Error in request'});
+            /* *** update video *** */ 
+            Project.findByIdAndUpdate(projectId, {videoProject: fileName}, {new: true}, (err, projectUpdated) => {
+              if (err) return res.status(500).send({message: 'Error en la solicitud.'});
 
-              if (!projectUpdated) return res.status(404).send({message: 'Could not update data'});
+              if (!projectUpdated) return res.status(404).send({message: '¡No se ha podido actualizar el video del proyecto!'});
 
               return res.status(200).send({project: projectUpdated});
             });
           }
           
         }else{
-          return removeFilesOfUploads(res, filePath, 'Does not have permission to update profile video');
+          return removeFilesOfUploads(res, filePath, '¡No tiene permiso para actualizar el video del proyecto!');
         }
       });
     }else{
-      return removeFilesOfUploads(res, filePath, 'Invalid extension');
+      return removeFilesOfUploads(res, filePath, 'Extensión no válida');
     }
 
   }else{
-    return res.status(200).send({message: 'No video uploaded'});
+    return res.status(200).send({message: 'No se ha cargado ningún vídeo'});
   }
 }
 
@@ -449,7 +341,7 @@ function getVideoFile (req, res){
     if (exists){
       res.sendFile(path.resolve(pathFile));
     }else{
-      res.status(200).send({message: 'Video file not found'});
+      res.status(200).send({message: 'Archivo de vídeo no encontrado'});
     }
   });
 }
@@ -457,7 +349,7 @@ function getVideoFile (req, res){
 /* *** upload resumesummary file *** */
 function uploadFiles (req, res){
   let projectId = req.params.id;
-
+  console.log(req.files);
   if(req.files && req.files.filesProject && Array.isArray(req.files.filesProject)) { 
     /* *** if files are received *** */
     let files = req.files.filesProject.map(file => {
@@ -470,7 +362,7 @@ function uploadFiles (req, res){
       let fileExt = extSplit[1];
 
       /* *** validate extension *** */
-      if(fileExt == 'png' || fileExt == 'jpg' || fileExt == 'jpeg' || fileExt == 'gif'){
+      if(fileExt == 'pdf'){
         return fileName;
       }else{
         removeFilesOfUploads(res, filePath, 'Error deleting file with wrong extension');
@@ -483,64 +375,18 @@ function uploadFiles (req, res){
     let newFiles = files.filter(file => file != null);
 
     if (newFiles.length <= 3){
+      /* *** update files *** */
       Project. findOne({'user': req.user.sub, '_id': projectId}).exec().then((project) => {
-
         if (project){
+          Project.findByIdAndUpdate(projectId, {filesProject: newFiles}, {new: true}, (err, projectUpdated) => {
+            if (err) return res.status(500).send({message: 'Error en la solicitud.'});
 
-          if (project.fileProjectOne){
+            if (!projectUpdated) return res.status(404).send({message: '¡No se ha podido actualizar la imagen del proyecto!'});
 
-            let previousFile = './uploads/publish-now/publish-project/pdf/' + project.fileProjectOne;
-
-            fs.unlink(previousFile, (err) =>{
-              if (err) return res.status(200).send({message: err});
-            });
-
-            let previousFileTwo = './uploads/publish-now/publish-project/pdf/' + project.fileProjectTwo;
-
-            fs.unlink(previousFileTwo, (err) =>{
-              if (err) return res.status(200).send({message: err});
-            });
-
-            let previousFileThree = './uploads/publish-now/publish-project/pdf/' + project.fileProjectThree;
-
-            fs.unlink(previousFileThree, (err) =>{
-              if (err) return res.status(200).send({message: err});
-            });
-
-            /* *** update images *** */
-            Project. findOne({'user': req.user.sub, '_id': projectId}).exec().then((project) => {
-              if (project){
-                Project.findByIdAndUpdate(projectId, {fileProjectOne: newFiles[0], fileProjectTwo: newFiles[1], fileProjectThree: newFiles[2]}, {new: true}, (err, projectUpdated) => {
-                  if (err) return res.status(500).send({message: 'Error en la solicitud.'});
-
-                  if (!projectUpdated) return res.status(404).send({message: '¡No se ha podido actualizar la imagen del proyecto!'});
-
-                  return res.status(200).send({project: projectUpdated});
-                });
-              }else{
-                return res.status(500).send({message: '¡No tiene permiso para actualizar la imagen del proyecto!'});
-              }
-            });
-          }
-
-          if (!project.fileProjectOne) {
-            /* *** update image *** */
-            Project. findOne({'user': req.user.sub, '_id': projectId}).exec().then((project) => {
-              if (project){
-                Project.findByIdAndUpdate(projectId, {fileProjectOne: newFiles[0], fileProjectTwo: newFiles[1], fileProjectThree: newFiles[2]}, {new: true}, (err, projectUpdated) => {
-                  if (err) return res.status(500).send({message: 'Error en la solicitud.'});
-
-                  if (!projectUpdated) return res.status(404).send({message: '¡No se ha podido actualizar la imagen del proyecto!'});
-
-                  return res.status(200).send({project: projectUpdated});
-                });
-              }else{
-                return res.status(500).send({message: '¡No tiene permiso para actualizar la imagen del proyecto!'});
-              }
-            });
-          }
+            return res.status(200).send({project: projectUpdated});
+          });
         }else{
-          return removeFilesOfUploads(res, filePath, '¡No tiene permiso para actualizar la imagen de perfil!');
+          return res.status(500).send({message: '¡No tiene permiso para actualizar la imagen del proyecto!'});
         }
       });
       
@@ -548,10 +394,10 @@ function uploadFiles (req, res){
       /* *** delete files for exceeding the allowed limit *** */
       newFiles.map(file => {
         let filePath = './uploads/publish-now/publish-project/pdf/' + file;
-        removeFilesOfUploads(res, filePath, 'Error when deleting files, due to exceeding the allowed limit');
+        removeFilesOfUploads(res, filePath, 'Error al borrar archivos, por exceder el límite permitido');
       });
 
-      return res.status(500).send({message: 'Exceeded image limit'});
+      return res.status(500).send({message: 'Límite de archivos superado'});
     } 
   } else if(req.files && req.files.filesProject) { 
     /* *** if an image is received *** */
@@ -562,76 +408,29 @@ function uploadFiles (req, res){
     let fileExt = extSplit[1];
     
     /* *** validate extension *** */
-    if(fileExt == 'png' || fileExt == 'jpg' || fileExt == 'jpeg' || fileExt == 'gif'){
+    if(fileExt == 'pdf'){
 
+      /* *** update files *** */
       Project. findOne({'user': req.user.sub, '_id': projectId}).exec().then((project) => {
-
         if (project){
 
-          if (project.fileProjectOne){
+          Project.findByIdAndUpdate(projectId, {filesProject: fileName}, {new: true}, (err, projectUpdated) => {
+            if (err) return res.status(500).send({message: 'Error en la solicitud.'});
 
-            let previousFile = './uploads/publish-now/publish-project/pdf/' + project.fileProjectOne;
+            if (!projectUpdated) return res.status(404).send({message: '¡No se han podido actualizar los archivos del proyecto!'});
 
-            fs.unlink(previousFile, (err) =>{
-              if (err) return res.status(200).send({message: err});
-            });
-
-            let previousFileTwo = './uploads/publish-now/publish-project/pdf/' + project.fileProjectTwo;
-
-            fs.unlink(previousFileTwo, (err) =>{
-              if (err) return res.status(200).send({message: err});
-            });
-
-            let previousFileThree = './uploads/publish-now/publish-project/pdf/' + project.fileProjectThree;
-
-            fs.unlink(previousFileThree, (err) =>{
-              if (err) return res.status(200).send({message: err});
-            });
-
-            /* *** update images *** */
-            Project. findOne({'user': req.user.sub, '_id': projectId}).exec().then((project) => {
-              if (project){
-                /* *** update image *** */
-                Project.findByIdAndUpdate(projectId, {fileProjectOne: fileName}, {new: true}, (err, projectUpdated) => {
-                  if (err) return res.status(500).send({message: 'Error in request'});
-      
-                  if (!projectUpdated) return res.status(404).send({message: 'Could not update user data'});
-      
-                  return res.status(200).send({project: projectUpdated});
-                });
-              }else{
-                return removeFilesOfUploads(res, filePath, 'Does not have permission to update service image');
-              }
-            });
-          }
-
-          if (!project.fileProjectOne) {
-            /* *** update image *** */
-            Project. findOne({'user': req.user.sub, '_id': projectId}).exec().then((project) => {
-              if (project){
-                /* *** update image *** */
-                Project.findByIdAndUpdate(projectId, {fileProjectOne: fileName}, {new: true}, (err, projectUpdated) => {
-                  if (err) return res.status(500).send({message: 'Error in request'});
-      
-                  if (!projectUpdated) return res.status(404).send({message: 'Could not update user data'});
-      
-                  return res.status(200).send({project: projectUpdated});
-                });
-              }else{
-                return removeFilesOfUploads(res, filePath, 'Does not have permission to update service image');
-              }
-            });
-          }
+            return res.status(200).send({project: projectUpdated});
+          });
         }else{
-          return removeFilesOfUploads(res, filePath, '¡No tiene permiso para actualizar la imagen de perfil!');
+          return removeFilesOfUploads(res, filePath, '¡No tiene permiso para actualizar los archivos del proyecto!');
         }
       });
     }else{
-      return removeFilesOfUploads(res, filePath, 'Invalid extension');
+      return removeFilesOfUploads(res, filePath, 'Extensión no válida');
     }
   } else {
     /* *** if no images are received * ***/
-    return res.status(404).send({message: 'There are no images'});
+    return res.status(404).send({message: 'No hay archivos'});
   }
 }
 
@@ -644,7 +443,7 @@ function getFiles (req, res){
     if (exists){
       res.sendFile(path.resolve(pathFile));
     }else{
-      res.status(200).send({message: 'PDF file not found'});
+      res.status(200).send({message: 'Archivo PDF no encontrado'});
     }
   });
 }
