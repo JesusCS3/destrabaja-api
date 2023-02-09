@@ -134,7 +134,7 @@ function uploadImage (req, res){
   let profileId = req.params.id;
 
   if (req.files){
-    console.log(req.files);
+
     let filePath = req.files.imgProfile.path;
     let fileSplit = filePath.split('\\');
     let fileName = fileSplit[4];

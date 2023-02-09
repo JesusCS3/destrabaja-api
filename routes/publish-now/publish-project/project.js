@@ -13,6 +13,10 @@ let mdUploadFiles = multipart({uploadDir: './uploads/publish-now/publish-project
 router.get('/test-project', mdAuth.ensureAuth, projectController.test);
 /* *** save project *** */
 router.post('/project', mdAuth.ensureAuth, projectController.saveProject);
+/* *** get projects *** */
+router.get('/projects/:page?', mdAuth.ensureAuth, projectController.getProjects);
+/* *** get all projects *** */
+router.get('/all-projects/:page?', mdAuth.ensureAuth, projectController.getAllProjects);
 /* *** get project by id *** */
 router.get('/project/:id?', mdAuth.ensureAuth, projectController.getProjectsById);
 /* *** delete project *** */

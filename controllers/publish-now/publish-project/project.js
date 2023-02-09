@@ -16,16 +16,14 @@ function test (req, res) {
 }
 
 /* *** save project *** */
-async function saveProject (req, res) {
+function saveProject (req, res) {
   let params = req.body;
-  console.log(params);
   let project = new Project();
-  let requirementsProject = new RequirementsProject();
 
   if (params.generalInfo.name && params.generalInfo.category && params.generalInfo.subcategory
     && params.description.shortDescription){
     project.name = params.generalInfo.name;
-    project.hastags = params.generalInfo.hastags;
+    project.hashtags = params.generalInfo.hashtags;
     project.category = params.generalInfo.category;
     project.subcategory = params.generalInfo.subcategory;
     project.videoProject = null;
@@ -55,6 +53,55 @@ async function saveProject (req, res) {
   }
 }
 
+/* *** get projects *** */
+function getProjects (req, res) {
+  let userId = req.user.sub;
+  let page = 1;
+
+  if (req.params.page){
+    page = req.params.page;
+  }
+
+  let itemsPerPage = 4;
+
+  Project.find({user: userId}).sort('-createdAt').populate('user').paginate(page, itemsPerPage, (err, projects, total) => {
+    if (err) return res.status(500).send({message: 'Error when returning projects'});
+
+    if (!projects) return res.status(404).send({message: 'There are no projects'});
+
+    return res.status(200).send({
+      totalItems: total,
+      pages: Math.ceil(total/itemsPerPage),
+      page: page,
+      projects
+    });
+  });
+}
+
+/* *** get all projects *** */
+function getAllProjects (req, res) {
+  let page = 1;
+
+  if (req.params.page){
+    page = req.params.page;
+  }
+
+  let itemsPerPage = 4;
+
+  Project.find({}).sort('-createdAt').populate('user').paginate(page, itemsPerPage, (err, projects, total) => {
+    if (err) return res.status(500).send({message: 'Error when returning projects'});
+
+    if (!projects) return res.status(404).send({message: 'There are no projects'});
+
+    return res.status(200).send({
+      totalItems: total,
+      pages: Math.ceil(total/itemsPerPage),
+      page: page,
+      projects
+    });
+  });
+}
+
 /* *** get projects by id *** */
 async function getProjectsById (req, res) {
   let projectId = req.params.id;
@@ -68,21 +115,9 @@ async function getProjectsById (req, res) {
     return res.status(500).send({message: 'Error when returning project: ' + err});
   });
 
-  let requirementsPublished = await RequirementsProject
-  .find({"project" : projectId}).select({'_id': 0, '__v': 0, 'project': 0, 'createdAt': 0, 'updatedAt': 0})
-  .then((requirementsProject) => {
-
-    if(!requirementsProject) return res.status(404).send({message: 'The requirements project does not exist'});
-         
-    return requirementsProject;
-  }).catch((err) => {
-    return res.status(500).send({message: 'Error when returning requirements project: ' + err});
-  });
-
   return res.status(200).send(
     { 
       project: projectPublished,
-      requirementsProject: requirementsPublished 
     }
   );
 }
@@ -97,15 +132,6 @@ async function deleteProject (req, res) {
 
   }).catch((err) => {
     return res.status(500).send({message: 'Error when deleting project: ' + err});
-  });
-
-  await RequirementsProject.find({user: req.user.sub, 'project': projectId})
-  .remove().then((requirementsProjectRemoved) => { 
-
-    if(!requirementsProjectRemoved) return res.status(404).send({message: 'Could not delete requirements project'});
-
-  }).catch((err) => {
-    return res.status(500).send({message: 'Error when deleting requirements project: ' + err});
   });
 
   return res.status(200).send({message: 'Project deleted successfully'});
@@ -171,7 +197,7 @@ async function updateProject (req, res) {
 /* *** upload img file *** */
 function uploadImage (req, res){
   let projectId = req.params.id;
-  console.log(req.files.images);
+
   if(req.files && req.files.images && Array.isArray(req.files.images)) { 
     /* *** if images are received *** */
     let images = req.files.images.map(file => {
@@ -279,7 +305,7 @@ function getImageFile (req, res){
 /* *** upload video file *** */
 function uploadVideo (req, res){
   let projectId = req.params.id;
-  console.log(req.files);
+
   if (req.files){
     let filePath = req.files.videoProject.path;
     let fileSplit = filePath.split('\\');
@@ -349,7 +375,7 @@ function getVideoFile (req, res){
 /* *** upload resumesummary file *** */
 function uploadFiles (req, res){
   let projectId = req.params.id;
-  console.log(req.files);
+
   if(req.files && req.files.filesProject && Array.isArray(req.files.filesProject)) { 
     /* *** if files are received *** */
     let files = req.files.filesProject.map(file => {
@@ -452,6 +478,8 @@ function getFiles (req, res){
 module.exports = {
     test,
     saveProject,
+    getProjects,
+    getAllProjects,
     getProjectsById,
     deleteProject,
     updateProject,
