@@ -13,7 +13,11 @@ router.get('/test-service', mdAuth.ensureAuth, serviceController.test);
 /* *** save service *** */
 router.post('/service', mdAuth.ensureAuth, serviceController.saveService);
 /* *** get services from people I follow *** */
+router.get('/services-follow/:page?', mdAuth.ensureAuth, serviceController.getServices);
+/* *** get projects *** */
 router.get('/services/:page?', mdAuth.ensureAuth, serviceController.getServices);
+/* *** get all projects *** */
+router.get('/all-services/:page?', mdAuth.ensureAuth, serviceController.getAllServices);
 /* *** get services by id *** */
 router.get('/service/:id?', mdAuth.ensureAuth, serviceController.getServicesById);
 /* *** delete service *** */
@@ -23,7 +27,7 @@ router.put('/update-service/:id', mdAuth.ensureAuth, serviceController.updateSer
 /* *** upload img file *** */
 router.post('/upload-img-service/:id', [mdAuth.ensureAuth, mdUploadImg], serviceController.uploadImage);
 /* *** get img file *** */
-router.get('/get-img-service/:images', serviceController.getImageFile);
+router.get('/get-img-service/:imageFile', serviceController.getImageFile);
 /* *** upload video file *** */
 router.post('/upload-video-service/:id', [mdAuth.ensureAuth, mdUploadVideo], serviceController.uploadVideo);
 /* *** get video file *** */

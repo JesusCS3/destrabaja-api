@@ -6,7 +6,7 @@ const serviceSchema = new mongoose.Schema(
         type: String,
         required: true
     },
-    hastags: {
+    hashtags: {
         type: String
     },
     category: {
@@ -20,14 +20,8 @@ const serviceSchema = new mongoose.Schema(
     videoService: {
         type: String
     },
-    imgServiceOne: {
-        type: String
-    },
-    imgServiceTwo: {
-        type: String
-    },
-    imgServiceThree: {
-        type: String
+    images: {
+        type:Array,
     },
     shortDescription: {
         type: String,
@@ -35,6 +29,66 @@ const serviceSchema = new mongoose.Schema(
     },
     longDescription: {
         type: String
+    },
+    checkPlanTwo: {
+        type: Boolean,
+    },
+    checkPlanThree: {
+        type: Boolean,
+    },
+    namePlanOne: {
+        type: String,
+    },
+    namePlanTwo: {
+        type: String,
+    },
+    namePlanThree: {
+        type: String,
+    },
+    deliverables: {
+        type:Array,
+    },
+    deliveryTimePlanOne: {
+        type: Number,
+    },
+    deliveryTimePlanTwo: {
+        type: Number,
+    },
+    deliveryTimePlanThree: {
+        type: Number,
+    },
+    commentPlanOne: {
+        type: String
+    },
+    commentPlanTwo: {
+        type: String
+    },
+    commentPlanThree: {
+        type: String
+    },
+    pricePlanOne:  {
+        type: Number,
+    },
+    pricePlanTwo:  {
+        type: Number,
+    },
+    pricePlanThree:  {
+        type: Number,
+    },
+    clientPricePlanOne:  {
+        type: Number,
+    },
+    clientPricePlanTwo:  {
+        type: Number,
+    },
+    clientPricePlanThree:  {
+        type: Number,
+    },
+    extras: {
+        type: Array,
+    },
+    requirement: {
+        type: Array,
     },
     status: {
         type: String

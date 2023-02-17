@@ -48,7 +48,7 @@ function saveProject (req, res) {
 
   }else{
     return res.status(200).send({
-      message: 'Please fill all the fields required!'
+      message: '¡Rellene todos los campos obligatorios!'
     }); 
   }
 }
@@ -334,7 +334,7 @@ function uploadVideo (req, res){
             });
           }
 
-          if (!project.projectVideo){
+          if (!project.videoProject){
             /* *** update video *** */ 
             Project.findByIdAndUpdate(projectId, {videoProject: fileName}, {new: true}, (err, projectUpdated) => {
               if (err) return res.status(500).send({message: 'Error en la solicitud.'});

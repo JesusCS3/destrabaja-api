@@ -21,146 +21,52 @@ function test (req, res) {
 }
 
 /* *** save service *** */
-async function saveService (req, res) {
+function saveService (req, res) {
   let params = req.body;
   let service = new Service();
-  let servicePlanOne = new ServicePlanOne();
-  let servicePlanTwo = new ServicePlanTwo();
-  let servicePlanThree = new ServicePlanThree();
-  let deliverable = new Deliverable();
-  let extra = new Extra();
-  let requirementsService = new RequirementsService();
 
-  if (params.name && params.category && params.subcategory && params.shortDescription){
-    service.name = params.name;
-    service.hastags = params.hastags;
-    service.category = params.category;
-    service.subcategory = params.subcategory;
+  if (params.generalInfo.name && params.generalInfo.category && params.generalInfo.subcategory
+    && params.generalInfo.shortDescription){
+    service.name = params.generalInfo.name;
+    service.hashtags = params.generalInfo.hashtags;
+    service.category = params.generalInfo.category;
+    service.subcategory = params.generalInfo.subcategory;
     service.videoService = null;
-    service.imgServiceOne = null;
-    service.imgServiceTwo = null;
-    service.imgServiceThree = null;
-    service.shortDescription = params.shortDescription;
-    service.longDescription = params.longDescription;
+    service.images = null;
+    service.shortDescription = params.description.shortDescription;
+    service.longDescription = params.description.longDescription;
+    service.checkPlanTwo = params.levels.checkPlanTwo;
+    service.checkPlanThree = params.levels.checkPlanThree;
+    service.namePlanOne = params.levels.namePlanOne;
+    service.namePlanTwo = params.levels.namePlanTwo;
+    service.namePlanThree = params.levels.namePlanThree;
+    service.deliverables = params.levels.deliverables;
+    service.deliveryTimePlanOne = params.levels.deliveryTimePlanOne;
+    service.deliveryTimePlanTwo = params.levels.deliveryTimePlanTwo;
+    service.deliveryTimePlanThree = params.levels.deliveryTimePlanThree;
+    service.commentPlanOne = params.levels.commentPlanOne;
+    service.commentPlanTwo = params.levels.commentPlanTwo;
+    service.commentPlanThree = params.levels.commentPlanThree;
+    service.pricePlanOne = params.levels.pricePlanOne;
+    service.pricePlanTwo = params.levels.pricePlanTwo;
+    service.pricePlanThree = params.levels.pricePlanThree;
+    service.clientPricePlanOne = params.levels.clientPricePlanOne;
+    service.clientPricePlanTwo = params.levels.clientPricePlanTwo;
+    service.clientPricePlanThree = params.levels.clientPricePlanThree;
+    service.extras = params.extras.extras;
+    project.requirement = params.requirements.requirement;
     service.status = 'active';
     service.createdAt = moment().unix();
     service.user = req.user.sub;
 
     /* *** save service *** */
-    let servicePublished = await service.save().then((serviceStored) => {
-      if (!serviceStored) return res.status(404).send({message: 'El servicio no se ha guardado.'});
+    service.save((err, serviceStored) => {
+      if (err) return res.status(500).send({message: '¡Error al guardar el servicio!'});
 
-      return serviceStored;
-    }).catch((err) => {
-      return res.status(500).send({message: 'Error al guardar el servicio: ' + err});
+      if (!serviceStored) return res.status(404).send({message: '¡No se ha guardado el servicio!'});
+
+      return res.status(200).send({service: serviceStored});
     });
-
-    /* *** save plans *** */
-    servicePlanOne.namePlanOne = params.namePlanOne;
-    servicePlanOne.deliveryTimePlanOne = params.deliveryTimePlanOne;
-    servicePlanOne.commentPlanOne = params.commentPlanOne;
-    servicePlanOne.pricePlanOne = params.pricePlanOne;
-    servicePlanOne.clientPricePlanOne = params.clientPricePlanOne;
-    servicePlanOne.service = service._id;
-
-    let servicePlanOnePublished = await servicePlanOne.save().then((servicePlanOneStored) => {
-      if (!servicePlanOneStored) return res.status(404).send({message: 'El plan de servicio uno no se ha guardado.'});
-
-      return servicePlanOneStored;
-    }).catch((err) => {
-      return res.status(500).send({message: 'Error al guardar el plan de servicio uno: ' + err});
-    });
-    
-    servicePlanTwo.namePlanTwo = params.namePlanTwo;
-    servicePlanTwo.deliveryTimePlanTwo = params.deliveryTimePlanTwo;
-    servicePlanTwo.commentPlanTwo = params.commentPlanTwo;
-    servicePlanTwo.pricePlanTwo = params.pricePlanTwo;
-    servicePlanTwo.clientPricePlanTwo = params.clientPricePlanTwo;
-    servicePlanTwo.service = service._id;
-
-    let servicePlanTwoPublished = await servicePlanTwo.save().then((servicePlanTwoStored) => {
-      if (!servicePlanTwoStored) return res.status(404).send({message: 'El plan de servicio dos no se ha guardado.'});
-
-      return servicePlanTwoStored;
-    }).catch((err) => {
-      return res.status(500).send({message: 'Error al guardar el plan de servicio dos: ' + err});
-    });
-
-    servicePlanThree.namePlanThree = params.namePlanThree;
-    servicePlanThree.deliveryTimePlanThree = params.deliveryTimePlanThree;
-    servicePlanThree.commentPlanThree = params.commentPlanThree;
-    servicePlanThree.pricePlanThree = params.pricePlanThree;
-    servicePlanThree.clientPricePlanThree = params.clientPricePlanThree;
-    servicePlanThree.service = service._id;
-
-    let servicePlanThreePublished = await servicePlanTwo.save().then((servicePlanThreeStored) => {
-      if (!servicePlanThreeStored) return res.status(404).send({message: 'El plan de servicio tres no se ha guardado.'});
-
-      return servicePlanThreeStored;
-    }).catch((err) => {
-      return res.status(500).send({message: 'Error al guardar el plan de servicio tres: ' + err});
-    });
-
-    deliverable.name = params.name; 
-    deliverable.checkPlanOne = params.checkPlanOne;
-    deliverable.checkPlanTwo = params.checkPlanTwo;
-    deliverable.checkPlanThree = params.checkPlanThree;
-    deliverable.service = service._id;
-
-    let deliverablesPublished = await deliverable.save().then((deliverableStored) => {
-      if (!deliverableStored) return res.status(404).send({message: 'Los entregables no se ha guardado.'});
-
-      return deliverableStored;
-    }).catch((err) => {
-      return res.status(500).send({message: 'Error al guardar los entregables: ' + err});
-    });
-
-    extra.name = params.name;
-    extra.checkPlanOneExtra = params.checkPlanOneExtra;
-    extra.deliveryTimePlanOneExtra = params.deliveryTimePlanOneExtra;
-    extra.pricePlanOneExtra = params.pricePlanOneExtra;
-    extra.clientPricePlanOneExtra = params.clientPricePlanOneExtra;
-    extra.checkPlanTwoExtra = params.checkPlanTwoExtra;
-    extra.deliveryTimePlanTwoExtra = params.deliveryTimePlanTwoExtra;
-    extra.pricePlanTwoExtra = params.pricePlanTwoExtra;
-    extra.clientPricePlanTwoExtra = params.clientPricePlanTwoExtra;
-    extra.checkPlanThreeExtra = params.checkPlanThreeExtra;
-    extra.deliveryTimePlanThreeExtra = params.deliveryTimePlanThreeExtra;
-    extra.pricePlanThreeExtra = params.pricePlanThreeExtra;
-    extra.clientPricePlanThreeExtra = params.clientPricePlanThreeExtra;
-    extra.service = service._id;
-
-    let extrasPublished = await extra.save().then((extraStored) => {
-      if (!extraStored) return res.status(404).send({message: 'Los extras no se ha guardado.'});
-
-      return extraStored;
-    }).catch((err) => {
-      return res.status(500).send({message: 'Error al guardar los extras: ' + err});
-    });
-
-    requirementsService.requirement = params.requirementsService;
-    requirementsService.service = service._id;
-
-    let requirementsPublished = await requirementsService.save().then((requirementsStored) => {
-      if (!requirementsStored) return res.status(404).send({message: 'Los requerimientos del servicio no se ha guardado.'});
-
-      return requirementsStored;
-    }).catch((err) => {
-      return res.status(500).send({message: 'Error al guardar los requerimientos del servicio: ' + err});
-    });
-
-    return res.status(200).send(
-      { 
-        service: servicePublished,
-        servicePlanOne: servicePlanOnePublished,
-        servicePlanTwo: servicePlanTwoPublished,
-        servicePlanThree: servicePlanThreePublished,
-        deliverables: deliverablesPublished,
-        extras: extrasPublished,
-        requirements: requirementsPublished
-         
-      }
-    );
 
   }else{
     return res.status(200).send({
@@ -170,7 +76,7 @@ async function saveService (req, res) {
 }
 
 /* *** get services from people I follow *** */
-function getServices (req, res) {
+function getServicesFollow (req, res) {
   let page = 1;
 
   if (req.params.page){
@@ -199,6 +105,55 @@ function getServices (req, res) {
         page: page,
         service
       });
+    });
+  });
+}
+
+/* *** get services *** */
+function getServices (req, res) {
+  let userId = req.user.sub;
+  let page = 1;
+
+  if (req.params.page){
+    page = req.params.page;
+  }
+
+  let itemsPerPage = 4;
+
+  Service.find({user: userId}).sort('-createdAt').populate('user').paginate(page, itemsPerPage, (err, services, total) => {
+    if (err) return res.status(500).send({message: 'Error when returning services'});
+
+    if (!services) return res.status(404).send({message: 'There are no services'});
+
+    return res.status(200).send({
+      totalItems: total,
+      pages: Math.ceil(total/itemsPerPage),
+      page: page,
+      services
+    });
+  });
+}
+
+/* *** get all services *** */
+function getAllServices (req, res) {
+  let page = 1;
+
+  if (req.params.page){
+    page = req.params.page;
+  }
+
+  let itemsPerPage = 4;
+
+  Service.find({}).sort('-createdAt').populate('user').paginate(page, itemsPerPage, (err, services, total) => {
+    if (err) return res.status(500).send({message: 'Error when returning services'});
+
+    if (!services) return res.status(404).send({message: 'There are no services'});
+
+    return res.status(200).send({
+      totalItems: total,
+      pages: Math.ceil(total/itemsPerPage),
+      page: page,
+      services
     });
   });
 }
@@ -336,8 +291,8 @@ function uploadImage (req, res) {
 
 /* *** get img file *** */
 function getImageFile (req, res){
-  let imgServiceOne = req.params.imgServiceOne;
-  let pathFile = './uploads/publish-now/publish-service/img/' + imgServiceOne;
+  let imageFile = req.params.imageFile;
+  let pathFile = './uploads/publish-now/publish-service/img/' + imageFile;
 
   fs.exists(pathFile, (exists) =>{
     if (exists){
@@ -369,24 +324,45 @@ function uploadVideo (req, res){
     if(fileExt == 'mp4' || fileExt == 'mov' || fileExt == 'wmv' || fileExt == 'avi'){
       Service. findOne({'user': req.user.sub, '_id': serviceId}).exec().then((service) => {
         if (service){
-          /* *** update video *** */
-          Service.findByIdAndUpdate(serviceId, {videoService: fileName}, {new: true}, (err, serviceUpdated) => {
-            if (err) return res.status(500).send({message: 'Error in request'});
+          if (service.videoService){
 
-            if (!serviceUpdated) return res.status(404).send({message: 'Could not update data'});
+            let previousVideo = './uploads/publish-now/publish-service/video/' + service.videoService;
 
-            return res.status(200).send({service: serviceUpdated});
-          });
+            fs.unlink(previousVideo, (err) =>{
+              if (err) return res.status(200).send({message: err});
+            });
+
+            /* *** update video *** */
+            Service.findByIdAndUpdate(serviceId, {videoService: fileName}, {new: true}, (err, serviceUpdated) => {
+              if (err) return res.status(500).send({message: 'Error in request'});
+
+              if (!serviceUpdated) return res.status(404).send({message: 'Could not update data'});
+
+              return res.status(200).send({service: serviceUpdated});
+            });
+          }
+
+          if (!service.videoService){
+            /* *** update video *** */
+            Service.findByIdAndUpdate(serviceId, {videoService: fileName}, {new: true}, (err, serviceUpdated) => {
+              if (err) return res.status(500).send({message: 'Error in request'});
+
+              if (!serviceUpdated) return res.status(404).send({message: 'Could not update data'});
+
+              return res.status(200).send({service: serviceUpdated});
+            });
+          }
+          
         }else{
-          return removeFilesOfUploads(res, filePath, 'Does not have permission to update service video');
+          return removeFilesOfUploads(res, filePath, '¡No tiene permiso para actualizar el video del proyecto!');
         }
       });
     }else{
-      return removeFilesOfUploads(res, filePath, 'Invalid extension');
+      return removeFilesOfUploads(res, filePath, 'Extensión no válida');
     }
 
   }else{
-    return res.status(200).send({message: 'No video uploaded'});
+    return res.status(200).send({message: 'No se ha cargado ningún vídeo'});
   }
 }
 
@@ -407,7 +383,9 @@ function getVideoFile (req, res){
 module.exports = {
     test,
     saveService,
+    getServicesFollow,
     getServices,
+    getAllServices,
     getServicesById,
     deleteService,
     updateService,
