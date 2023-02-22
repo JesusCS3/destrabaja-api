@@ -24,9 +24,9 @@ function test (req, res) {
 function saveService (req, res) {
   let params = req.body;
   let service = new Service();
-
+  console.log(params);
   if (params.generalInfo.name && params.generalInfo.category && params.generalInfo.subcategory
-    && params.generalInfo.shortDescription){
+    && params.description.shortDescription){
     service.name = params.generalInfo.name;
     service.hashtags = params.generalInfo.hashtags;
     service.category = params.generalInfo.category;
@@ -54,14 +54,14 @@ function saveService (req, res) {
     service.clientPricePlanTwo = params.levels.clientPricePlanTwo;
     service.clientPricePlanThree = params.levels.clientPricePlanThree;
     service.extras = params.extras.extras;
-    project.requirement = params.requirements.requirement;
+    service.requirement = params.requirements.requirement;
     service.status = 'active';
     service.createdAt = moment().unix();
     service.user = req.user.sub;
 
     /* *** save service *** */
     service.save((err, serviceStored) => {
-      if (err) return res.status(500).send({message: '¡Error al guardar el servicio!'});
+      if (err) return res.status(500).send({message: '¡Error al guardar el servicio!' + err});
 
       if (!serviceStored) return res.status(404).send({message: '¡No se ha guardado el servicio!'});
 
@@ -118,7 +118,7 @@ function getServices (req, res) {
     page = req.params.page;
   }
 
-  let itemsPerPage = 4;
+  let itemsPerPage = 6;
 
   Service.find({user: userId}).sort('-createdAt').populate('user').paginate(page, itemsPerPage, (err, services, total) => {
     if (err) return res.status(500).send({message: 'Error when returning services'});
@@ -129,6 +129,7 @@ function getServices (req, res) {
       totalItems: total,
       pages: Math.ceil(total/itemsPerPage),
       page: page,
+      itemsPerPage: itemsPerPage,
       services
     });
   });
@@ -142,7 +143,7 @@ function getAllServices (req, res) {
     page = req.params.page;
   }
 
-  let itemsPerPage = 4;
+  let itemsPerPage = 6;
 
   Service.find({}).sort('-createdAt').populate('user').paginate(page, itemsPerPage, (err, services, total) => {
     if (err) return res.status(500).send({message: 'Error when returning services'});
@@ -153,6 +154,7 @@ function getAllServices (req, res) {
       totalItems: total,
       pages: Math.ceil(total/itemsPerPage),
       page: page,
+      itemsPerPage: itemsPerPage,
       services
     });
   });
@@ -212,7 +214,7 @@ function uploadImage (req, res) {
     /* *** if images are received *** */
     let images = req.files.images.map(file => {
       
-      //console.log(req.files.images);
+      console.log(req.files.images);
       let filePath = file.path;
       let fileSplit = filePath.split('\\');
       let fileName = fileSplit[4];
@@ -236,7 +238,7 @@ function uploadImage (req, res) {
       /* *** update images *** */
       Service. findOne({'user': req.user.sub, '_id': serviceId}).exec().then((service) => {
         if (service){
-          Service.findByIdAndUpdate(serviceId, {imgServiceOne: newImages[0], imgServiceTwo: newImages[1], imgServiceThree: newImages[2]}, {new: true}, (err, serviceUpdated) => {
+          Service.findByIdAndUpdate(serviceId, {images: newImages}, {new: true}, (err, serviceUpdated) => {
             if (err) return res.status(500).send({message: 'Error in request'});
 
             if (!serviceUpdated) return res.status(404).send({message: 'Could not update user data'});
@@ -269,23 +271,23 @@ function uploadImage (req, res) {
       Service. findOne({'user': req.user.sub, '_id': serviceId}).exec().then((service) => {
         if (service){
           /* *** update image *** */
-          Service.findByIdAndUpdate(serviceId, {imgServiceOne: fileName}, {new: true}, (err, serviceUpdated) => {
-            if (err) return res.status(500).send({message: 'Error in request'});
+          Service.findByIdAndUpdate(serviceId, {images: fileName}, {new: true}, (err, serviceUpdated) => {
+            if (err) return res.status(500).send({message: 'Error en la solicitud.'});
 
-            if (!serviceUpdated) return res.status(404).send({message: 'Could not update user data'});
+            if (!serviceUpdated) return res.status(404).send({message: '¡No se ha podido actualizar la imagen del servicio!'});
 
             return res.status(200).send({service: serviceUpdated});
           });
         }else{
-          return removeFilesOfUploads(res, filePath, 'Does not have permission to update service image');
+          return removeFilesOfUploads(res, filePath, '¡No tiene permiso para actualizar la imagen del servicio!');
         }
       });
     }else{
-      return removeFilesOfUploads(res, filePath, 'Invalid extension');
+      return removeFilesOfUploads(res, filePath, 'Extensión no válida');
     }
   } else {
     /* *** if no images are received * ***/
-    return res.status(404).send({message: 'There are no images'});
+    return res.status(404).send({message: 'No hay imágenes'});
   }
 }
 
@@ -298,7 +300,7 @@ function getImageFile (req, res){
     if (exists){
       res.sendFile(path.resolve(pathFile));
     }else{
-      res.status(200).send({message: 'Image file not found'});
+      res.status(200).send({message: 'Archivo de imagen no encontrado'});
     }
   });
 }
@@ -334,9 +336,9 @@ function uploadVideo (req, res){
 
             /* *** update video *** */
             Service.findByIdAndUpdate(serviceId, {videoService: fileName}, {new: true}, (err, serviceUpdated) => {
-              if (err) return res.status(500).send({message: 'Error in request'});
+              if (err) return res.status(500).send({message: 'Error en la solicitud.'});
 
-              if (!serviceUpdated) return res.status(404).send({message: 'Could not update data'});
+              if (!serviceUpdated) return res.status(404).send({message: '¡No se ha podido actualizar el video del servicio!'});
 
               return res.status(200).send({service: serviceUpdated});
             });
@@ -345,9 +347,9 @@ function uploadVideo (req, res){
           if (!service.videoService){
             /* *** update video *** */
             Service.findByIdAndUpdate(serviceId, {videoService: fileName}, {new: true}, (err, serviceUpdated) => {
-              if (err) return res.status(500).send({message: 'Error in request'});
+              if (err) return res.status(500).send({message: 'Error en la solicitud.'});
 
-              if (!serviceUpdated) return res.status(404).send({message: 'Could not update data'});
+              if (!serviceUpdated) return res.status(404).send({message: '¡No se ha podido actualizar el video del servicio!'});
 
               return res.status(200).send({service: serviceUpdated});
             });
@@ -375,7 +377,7 @@ function getVideoFile (req, res){
     if (exists){
       res.sendFile(path.resolve(pathFile));
     }else{
-      res.status(200).send({message: 'Video file not found'});
+      res.status(200).send({message: 'Archivo de vídeo no encontrado'});
     }
   });
 }

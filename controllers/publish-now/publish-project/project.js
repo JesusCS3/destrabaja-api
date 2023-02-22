@@ -62,7 +62,7 @@ function getProjects (req, res) {
     page = req.params.page;
   }
 
-  let itemsPerPage = 4;
+  let itemsPerPage = 6;
 
   Project.find({user: userId}).sort('-createdAt').populate('user').paginate(page, itemsPerPage, (err, projects, total) => {
     if (err) return res.status(500).send({message: 'Error when returning projects'});
@@ -73,6 +73,7 @@ function getProjects (req, res) {
       totalItems: total,
       pages: Math.ceil(total/itemsPerPage),
       page: page,
+      itemsPerPage: itemsPerPage,
       projects
     });
   });
@@ -86,7 +87,7 @@ function getAllProjects (req, res) {
     page = req.params.page;
   }
 
-  let itemsPerPage = 4;
+  let itemsPerPage = 6;
 
   Project.find({}).sort('-createdAt').populate('user').paginate(page, itemsPerPage, (err, projects, total) => {
     if (err) return res.status(500).send({message: 'Error when returning projects'});
@@ -97,6 +98,7 @@ function getAllProjects (req, res) {
       totalItems: total,
       pages: Math.ceil(total/itemsPerPage),
       page: page,
+      itemsPerPage: itemsPerPage,
       projects
     });
   });
