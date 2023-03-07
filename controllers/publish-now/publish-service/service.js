@@ -161,16 +161,23 @@ function getAllServices (req, res) {
 }
 
 /* *** get services by id *** */
-function getServicesById (req, res) {
+async function getServicesById (req, res) {
   let serviceId = req.params.id;
 
-  Service.findById(serviceId, (err, service) => {
-    if (err) return res.status(500).send({message: 'Error when returning service'});
+  let servicePublished = await Project.findById(serviceId).sort('-createdAt').populate('user').then((service) => { 
 
     if(!service) return res.status(404).send({message: 'The service does not exist'});
 
-    return res.status(200).send({service});
+    return service;
+  }).catch((err) => {
+    return res.status(500).send({message: 'Error when returning service: ' + err});
   });
+
+  return res.status(200).send(
+    { 
+      service: servicePublished,
+    }
+  );
 }
 
 /* *** delete service *** */

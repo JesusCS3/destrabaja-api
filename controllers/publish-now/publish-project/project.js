@@ -109,7 +109,7 @@ function getAllProjects (req, res) {
 async function getProjectsById (req, res) {
   let projectId = req.params.id;
 
-  let projectPublished = await Project.findById(projectId).then((project) => { 
+  let projectPublished = await Project.findById(projectId).sort('-createdAt').populate('user').then((project) => { 
 
     if(!project) return res.status(404).send({message: 'The project does not exist'});
 
@@ -209,9 +209,13 @@ function uploadImage (req, res){
       console.log(req.files.images);
       let filePath = file.path;
       let fileSplit = filePath.split('\\');
+      console.log(fileSplit);
       let fileName = fileSplit[4];
+      console.log(fileName);
       let extSplit = fileName.split('\.');
+      console.log(extSplit);
       let fileExt = extSplit[1];
+      console.log(fileExt);
 
       /* *** validate extension *** */
       if(fileExt == 'png' || fileExt == 'jpg' || fileExt == 'jpeg' || fileExt == 'gif'){
