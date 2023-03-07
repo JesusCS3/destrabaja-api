@@ -120,7 +120,7 @@ function getServices (req, res) {
 
   let itemsPerPage = 6;
 
-  Service.find({user: userId}).select({videoService:1, images:1, name:1, shortDescription:1, clientPlanOne:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, services, total) => {
+  Service.find({user: userId}).select({videoService:1, images:1, name:1, shortDescription:1, clientPricePlanOne:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, services, total) => {
     if (err) return res.status(500).send({message: 'Error when returning services'});
 
     if (!services) return res.status(404).send({message: 'There are no services'});
@@ -145,7 +145,7 @@ function getAllServices (req, res) {
 
   let itemsPerPage = 6;
 
-  Service.find({}).select({videoService:1, images:1, name:1, shortDescription:1, clientPlanOne:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, services, total) => {
+  Service.find({}).select({videoService:1, images:1, name:1, shortDescription:1, clientPricePlanOne:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, services, total) => {
     if (err) return res.status(500).send({message: 'Error when returning services'});
 
     if (!services) return res.status(404).send({message: 'There are no services'});
