@@ -47,6 +47,9 @@ const projectSchema = new mongoose.Schema(
     requirement: {
         type: Array
     },
+    status: {
+        type: String
+    },
     createdAt: {
         type: String
     },

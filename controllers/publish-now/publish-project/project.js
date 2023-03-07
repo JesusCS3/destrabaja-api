@@ -35,6 +35,7 @@ function saveProject (req, res) {
     project.checkDeliveryDate = params.features.checkDeliveryDate;
     project.deliveryDate = params.features.deliveryDate;
     project.requirement = params.requirements.requirement;
+    project.status = 'active';
     project.createdAt = moment().unix();
     project.user = req.user.sub;
 
