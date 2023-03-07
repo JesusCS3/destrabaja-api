@@ -202,10 +202,11 @@ function uploadImage (req, res){
   let projectId = req.params.id;
 
   if(req.files && req.files.images && Array.isArray(req.files.images)) { 
+
     /* *** if images are received *** */
     let images = req.files.images.map(file => {
       
-      //console.log(req.files.images);
+      console.log(req.files.images);
       let filePath = file.path;
       let fileSplit = filePath.split('\\');
       let fileName = fileSplit[4];
@@ -250,6 +251,7 @@ function uploadImage (req, res){
       return res.status(500).send({message: 'Se ha superado el límite de imágenes'});
     } 
   } else if(req.files && req.files.images) { 
+    console.log(req.files.images);
     /* *** if an image is received *** */
     let filePath = req.files.images.path;
     let fileSplit = filePath.split('\\');
@@ -308,7 +310,7 @@ function getImageFile (req, res){
 /* *** upload video file *** */
 function uploadVideo (req, res){
   let projectId = req.params.id;
-
+  console.log(req.files);
   if (req.files){
     let filePath = req.files.videoProject.path;
     let fileSplit = filePath.split('\\');
