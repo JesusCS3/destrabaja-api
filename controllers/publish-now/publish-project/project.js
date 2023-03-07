@@ -65,7 +65,7 @@ function getProjects (req, res) {
 
   let itemsPerPage = 6;
 
-  Project.find({user: userId}).sort('-createdAt').populate('user').paginate(page, itemsPerPage, (err, projects, total) => {
+  Project.find({user: userId}).select({videoProject:1, images:1, name:1, shortDescription:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, projects, total) => {
     if (err) return res.status(500).send({message: 'Error when returning projects'});
 
     if (!projects) return res.status(404).send({message: 'There are no projects'});
@@ -90,7 +90,7 @@ function getAllProjects (req, res) {
 
   let itemsPerPage = 6;
 
-  Project.find({}).sort('-createdAt').populate('user').paginate(page, itemsPerPage, (err, projects, total) => {
+  Project.find({}).select({videoProject:1, images:1, name:1, shortDescription:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, projects, total) => {
     if (err) return res.status(500).send({message: 'Error when returning projects'});
 
     if (!projects) return res.status(404).send({message: 'There are no projects'});
@@ -109,7 +109,7 @@ function getAllProjects (req, res) {
 async function getProjectsById (req, res) {
   let projectId = req.params.id;
 
-  let projectPublished = await Project.findById(projectId).sort('-createdAt').populate('user').then((project) => { 
+  let projectPublished = await Project.findById(projectId).sort('-createdAt').populate('user', {image:1, username:1}).then((project) => { 
 
     if(!project) return res.status(404).send({message: 'The project does not exist'});
 
@@ -259,7 +259,7 @@ function uploadImage (req, res){
     console.log(req.files.images);
     /* *** if an image is received *** */
     let filePath = req.files.images.path;
-    let fileSplit = filePath.split('\\');
+    let fileSplit = filePath.split('\/');
     let fileName = fileSplit[4];
     let extSplit = fileName.split('\.');
     let fileExt = extSplit[1];
@@ -318,7 +318,7 @@ function uploadVideo (req, res){
   console.log(req.files);
   if (req.files){
     let filePath = req.files.videoProject.path;
-    let fileSplit = filePath.split('\\');
+    let fileSplit = filePath.split('\/');
     let fileName = fileSplit[4];
     let extSplit = fileName.split('\.');
     let fileExt = extSplit[1];
@@ -392,7 +392,7 @@ function uploadFiles (req, res){
       
       //console.log(req.files.filesProject);
       let filePath = file.path;
-      let fileSplit = filePath.split('\\');
+      let fileSplit = filePath.split('\/');
       let fileName = fileSplit[4];
       let extSplit = fileName.split('\.');
       let fileExt = extSplit[1];
@@ -438,7 +438,7 @@ function uploadFiles (req, res){
   } else if(req.files && req.files.filesProject) { 
     /* *** if an image is received *** */
     let filePath = req.files.filesProject.path;
-    let fileSplit = filePath.split('\\');
+    let fileSplit = filePath.split('\/');
     let fileName = fileSplit[4];
     let extSplit = fileName.split('\.');
     let fileExt = extSplit[1];

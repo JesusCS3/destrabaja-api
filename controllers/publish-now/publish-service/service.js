@@ -120,7 +120,7 @@ function getServices (req, res) {
 
   let itemsPerPage = 6;
 
-  Service.find({user: userId}).sort('-createdAt').populate('user').paginate(page, itemsPerPage, (err, services, total) => {
+  Service.find({user: userId}).select({videoService:1, images:1, name:1, shortDescription:1, clientPlanOne:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, services, total) => {
     if (err) return res.status(500).send({message: 'Error when returning services'});
 
     if (!services) return res.status(404).send({message: 'There are no services'});
@@ -145,7 +145,7 @@ function getAllServices (req, res) {
 
   let itemsPerPage = 6;
 
-  Service.find({}).sort('-createdAt').populate('user').paginate(page, itemsPerPage, (err, services, total) => {
+  Service.find({}).select({videoService:1, images:1, name:1, shortDescription:1, clientPlanOne:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, services, total) => {
     if (err) return res.status(500).send({message: 'Error when returning services'});
 
     if (!services) return res.status(404).send({message: 'There are no services'});
@@ -164,7 +164,7 @@ function getAllServices (req, res) {
 async function getServicesById (req, res) {
   let serviceId = req.params.id;
 
-  let servicePublished = await Project.findById(serviceId).sort('-createdAt').populate('user').then((service) => { 
+  let servicePublished = await Service.findById(serviceId).sort('-createdAt').populate('user', {image:1, username:1}).then((service) => { 
 
     if(!service) return res.status(404).send({message: 'The service does not exist'});
 
@@ -223,7 +223,7 @@ function uploadImage (req, res) {
       
       console.log(req.files.images);
       let filePath = file.path;
-      let fileSplit = filePath.split('\\');
+      let fileSplit = filePath.split('\/');
       let fileName = fileSplit[4];
       let extSplit = fileName.split('\.');
       let fileExt = extSplit[1];
@@ -268,7 +268,7 @@ function uploadImage (req, res) {
   } else if(req.files && req.files.images) { 
     /* *** if an image is received *** */
     let filePath = req.files.images.path;
-    let fileSplit = filePath.split('\\');
+    let fileSplit = filePath.split('\/');
     let fileName = fileSplit[4];
     let extSplit = fileName.split('\.');
     let fileExt = extSplit[1];
@@ -325,7 +325,7 @@ function uploadVideo (req, res){
 
   if (req.files){
     let filePath = req.files.videoService.path;
-    let fileSplit = filePath.split('\\');
+    let fileSplit = filePath.split('\/');
     let fileName = fileSplit[4];
     let extSplit = fileName.split('\.');
     let fileExt = extSplit[1];

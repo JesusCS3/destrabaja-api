@@ -29,6 +29,7 @@ function saveUser (req, res) {
   let user = new User();
 
   if (params.email && params.username && params.password) {
+    user.image = null;
     user.username = params.username;
     user.email = params.email;
     user.phone = params.phone;
@@ -290,7 +291,7 @@ function uploadImage (req, res){
 
   if (req.files){
     let filePath = req.files.image.path;
-    let fileSplit = filePath.split('\\');
+    let fileSplit = filePath.split('\/');
     let fileName = fileSplit[2];
     let extSplit = fileName.split('\.');
     let fileExt = extSplit[1];

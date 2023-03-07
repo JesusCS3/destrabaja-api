@@ -136,7 +136,7 @@ function uploadImage (req, res){
   if (req.files){
 
     let filePath = req.files.imgProfile.path;
-    let fileSplit = filePath.split('\\');
+    let fileSplit = filePath.split('\/');
     let fileName = fileSplit[4];
     let extSplit = fileName.split('\.');
     let fileExt = extSplit[1];
@@ -217,7 +217,7 @@ function uploadVideo (req, res){
 
   if (req.files){
     let filePath = req.files.videoProfile.path;
-    let fileSplit = filePath.split('\\');
+    let fileSplit = filePath.split('\/');
     let fileName = fileSplit[4];
     let extSplit = fileName.split('\.');
     let fileExt = extSplit[1];
@@ -287,7 +287,7 @@ function uploadResumesummary (req, res){
 
   if (req.files){
     let filePath = req.files.resumesummaryFile.path;
-    let fileSplit = filePath.split('\\');
+    let fileSplit = filePath.split('\/');
     let fileName = fileSplit[5];
     let extSplit = fileName.split('\.');
     let fileExt = extSplit[1];
@@ -355,7 +355,7 @@ function uploadPreviousWork (req, res){
 
   if (req.files){
     let filePath = req.files.previousWork.path;
-    let fileSplit = filePath.split('\\');
+    let fileSplit = filePath.split('\/');
     let fileName = fileSplit[5];
     let extSplit = fileName.split('\.');
     let fileExt = extSplit[1];
