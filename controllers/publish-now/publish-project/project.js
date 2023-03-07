@@ -208,7 +208,8 @@ function uploadImage (req, res){
       
       console.log(req.files.images);
       let filePath = file.path;
-      let fileSplit = filePath.split('\\');
+      console.log(filePath);
+      let fileSplit = filePath.split('\/');
       console.log(fileSplit);
       let fileName = fileSplit[4];
       console.log(fileName);
