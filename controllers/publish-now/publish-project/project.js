@@ -65,7 +65,7 @@ function getProjects (req, res) {
 
   let itemsPerPage = 6;
 
-  Project.find({user: userId}).select({videoProject:1, images:1, name:1, shortDescription:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, projects, total) => {
+  Project.find({user: userId}).select({videoProject:1, images:1, name:1, shortDescription:1, status:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, projects, total) => {
     if (err) return res.status(500).send({message: 'Error when returning projects'});
 
     if (!projects) return res.status(404).send({message: 'There are no projects'});
@@ -90,7 +90,7 @@ function getAllProjects (req, res) {
 
   let itemsPerPage = 6;
 
-  Project.find({}).select({videoProject:1, images:1, name:1, shortDescription:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, projects, total) => {
+  Project.find({}).select({videoProject:1, images:1, name:1, shortDescription:1, status:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, projects, total) => {
     if (err) return res.status(500).send({message: 'Error when returning projects'});
 
     if (!projects) return res.status(404).send({message: 'There are no projects'});
@@ -154,9 +154,8 @@ async function updateProject (req, res) {
     
         if (!projectUpdated) return res.status(404).send({message: 'Could not update project data'});
     
-        //return res.status(200).send({project: projectUpdated});
+        return res.status(200).send({project: projectUpdated});
 
-        //return projectUpdated;
       });
     }else{
       return res.status(500).send({message: 'Does not have permission to update project data'});
@@ -165,36 +164,32 @@ async function updateProject (req, res) {
     return res.status(500).send({message: 'Error when update project: ' + err});
   });
 
-  await RequirementsProject.findOne({user: req.user.sub, 'project': projectId}).exec().then((requirement) => {
-    if (requirement){
+}
+
+/* *** update status project *** */
+async function updateStatusProject (req, res) {
+  console.log(req.params);
+  let projectId = req.params.id;
+  let statusProject = req.body;
+console.log(statusProject);
+  await Project.findOne({'user': req.user.sub, '_id': projectId}).exec().then((project) => {
+    if (project){
       /* *** update project *** */
-      RequirementsProject.findOneAndUpdate({'project': projectId}, update, {new: true}, (err, requirementProjectUpdated) => {
+      Project.findByIdAndUpdate(projectId, {status: statusProject.status}, {new: true}, (err, projectUpdated) => {
+        
         if (err) return res.status(500).send({message: 'Error in request'});
     
-        if (!requirementProjectUpdated) return res.status(404).send({message: 'Could not update requirementProject data'});
+        if (!projectUpdated) return res.status(404).send({message: 'Could not update status project'});
     
-        //return res.status(200).send({requirementProject: requirementProjectUpdated});
+        return res.status(200).send({project: projectUpdated});
 
-        //return requirementProjectUpdated;
       });
     }else{
-      return res.status(500).send({message: 'Does not have permission to update requirementProject data'});
+      return res.status(500).send({message: 'Does not have permission to update status project'});
     }
   }).catch((err) => {
-    return res.status(500).send({message: 'Error when update requirements project: ' + err});
+    return res.status(500).send({message: 'Error when update status project: ' + err});
   });
-
-  /*
-  return res.status(200).send(
-    { 
-      project: projectPublished,
-      requirementsProject: requirementsPublished 
-    }
-  );
-  */
-
-  return res.status(200).send({message: 'Project update successfully'});
-
 }
 
 /* *** upload img file *** */
@@ -493,6 +488,7 @@ module.exports = {
     getProjectsById,
     deleteProject,
     updateProject,
+    updateStatusProject,
     uploadImage,
     getImageFile,
     uploadVideo,

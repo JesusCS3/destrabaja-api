@@ -120,7 +120,7 @@ function getServices (req, res) {
 
   let itemsPerPage = 6;
 
-  Service.find({user: userId}).select({videoService:1, images:1, name:1, shortDescription:1, clientPricePlanOne:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, services, total) => {
+  Service.find({user: userId}).select({videoService:1, images:1, name:1, shortDescription:1, clientPricePlanOne:1, status:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, services, total) => {
     if (err) return res.status(500).send({message: 'Error when returning services'});
 
     if (!services) return res.status(404).send({message: 'There are no services'});
@@ -145,7 +145,7 @@ function getAllServices (req, res) {
 
   let itemsPerPage = 6;
 
-  Service.find({}).select({videoService:1, images:1, name:1, shortDescription:1, clientPricePlanOne:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, services, total) => {
+  Service.find({}).select({videoService:1, images:1, name:1, shortDescription:1, clientPricePlanOne:1, status:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, services, total) => {
     if (err) return res.status(500).send({message: 'Error when returning services'});
 
     if (!services) return res.status(404).send({message: 'There are no services'});
@@ -211,6 +211,32 @@ function updateService (req, res) {
     }else{
       return res.status(500).send({message: 'Does not have permission to update service data'});
     }
+  });
+}
+
+/* *** update status service *** */
+async function updateStatusService (req, res) {
+  console.log(req.params);
+  let serviceId = req.params.id;
+  let statusService = req.body;
+console.log(statusService);
+  await Service.findOne({'user': req.user.sub, '_id': serviceId}).exec().then((service) => {
+    if (service){
+      /* *** update service *** */
+      Service.findByIdAndUpdate(serviceId, {status: statusService.status}, {new: true}, (err, serviceUpdated) => {
+        
+        if (err) return res.status(500).send({message: 'Error in request'});
+    
+        if (!serviceUpdated) return res.status(404).send({message: 'Could not update status service'});
+    
+        return res.status(200).send({service: serviceUpdated});
+
+      });
+    }else{
+      return res.status(500).send({message: 'Does not have permission to update status service'});
+    }
+  }).catch((err) => {
+    return res.status(500).send({message: 'Error when update status service: ' + err});
   });
 }
 
@@ -398,6 +424,7 @@ module.exports = {
     getServicesById,
     deleteService,
     updateService,
+    updateStatusService,
     uploadImage,
     getImageFile,
     uploadVideo,

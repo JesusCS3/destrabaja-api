@@ -24,6 +24,8 @@ router.get('/service/:id?', mdAuth.ensureAuth, serviceController.getServicesById
 router.delete('/service/:id?', mdAuth.ensureAuth, serviceController.deleteService);
 /* *** update service data *** */
 router.put('/update-service/:id', mdAuth.ensureAuth, serviceController.updateService);
+/* *** update status service *** */
+router.put('/update-status-service/:id', mdAuth.ensureAuth, serviceController.updateStatusService);
 /* *** upload img file *** */
 router.post('/upload-img-service/:id', [mdAuth.ensureAuth, mdUploadImg], serviceController.uploadImage);
 /* *** get img file *** */

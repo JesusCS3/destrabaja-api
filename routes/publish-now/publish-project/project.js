@@ -23,6 +23,8 @@ router.get('/project/:id?', mdAuth.ensureAuth, projectController.getProjectsById
 router.delete('/project/:id?', mdAuth.ensureAuth, projectController.deleteProject);
 /* *** update project data *** */
 router.put('/update-project/:id', mdAuth.ensureAuth, projectController.updateProject);
+/* *** update status project *** */
+router.put('/update-status-project/:id', mdAuth.ensureAuth, projectController.updateStatusProject);
 /* *** upload img file *** */
 router.post('/upload-img-project/:id', [mdAuth.ensureAuth, mdUploadImg], projectController.uploadImage);
 /* *** get img file *** */
