@@ -181,16 +181,18 @@ async function getServicesById (req, res) {
 }
 
 /* *** delete service *** */
-function deleteService (req, res) {
+async function deleteService (req, res) {
   let serviceId = req.params.id;
 
-  Service.find({user: req.user.sub, '_id': serviceId}).remove(err => {
-    if (err) return res.status(500).send({message: 'Error when deleting service'});
+  await Service.find({user: req.user.sub, '_id': serviceId}).deleteOne().then((serviceRemoved) => { 
 
     if(!serviceRemoved) return res.status(404).send({message: 'Could not delete service'});
 
-    return res.status(200).send({message: 'Service deleted successfully'});
+  }).catch((err) => {
+    return res.status(500).send({message: 'Error when deleting service: ' + err});
   });
+
+  return res.status(200).send({message: 'Service deleted successfully'});
 }
 
 /* *** update service data *** */

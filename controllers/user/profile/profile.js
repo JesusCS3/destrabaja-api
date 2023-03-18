@@ -86,7 +86,7 @@ function saveProfile (req, res) {
 function deleteProfile (req, res) {
   let profileId = req.params.id;
 
-  Profile.find({user: req.user.sub, '_id': profileId}).remove(err => {
+  Profile.find({user: req.user.sub, '_id': profileId}).deleteOne(err => {
     if (err) return res.status(500).send({message: 'Error when deleting profile'});
 
     if(!profileRemoved) return res.status(404).send({message: 'Could not delete profile'});
@@ -96,16 +96,23 @@ function deleteProfile (req, res) {
 }
 
 /* *** get profile *** */
-function getProfile (req, res) {
-  let userId = req.user.sub;
+async function getProfile (req, res) {
+  let profileId = req.params.id;
 
-  Profile.findOne({user: userId}, (err, profile) => {
-    if (err) return res.status(500).send({message: 'Error al devolver el perfil'});
+  let profilePublished = await Profile.findOne({user: profileId}).populate('user', {image:1, username:1}).then((profile) => { 
 
     if(!profile) return res.status(404).send({message: 'El perfil no existe'});
 
-    return res.status(200).send({profile});
+    return profile;
+  }).catch((err) => {
+    return res.status(500).send({message: 'Error al devolver el perfil: ' + err});
   });
+
+  return res.status(200).send(
+    { 
+      profile: profilePublished,
+    }
+  );
 }
 
 /* *** update profile data *** */
