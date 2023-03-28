@@ -4,12 +4,6 @@ const path = require('path');
 const moment = require('moment');
 
 const Service = require('../../../models/publish-now/publish-service/service');
-const ServicePlanOne = require('../../../models/publish-now/publish-service/servicePlanOne');
-const ServicePlanTwo = require('../../../models/publish-now/publish-service/servicePlanTwo');
-const ServicePlanThree = require('../../../models/publish-now/publish-service/servicePlanThree');
-const Deliverable = require('../../../models/publish-now/publish-service/deliverable');
-const Extra = require('../../../models/publish-now/publish-service/extra');
-const RequirementsService = require('../../../models/publish-now/publish-service/requirement-service');
 const User = require('../../../models/user/user');
 const Follow = require('../../../models/user/follow/follow');
 

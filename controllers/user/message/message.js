@@ -19,13 +19,14 @@ function test (req, res) {
 function saveMessage (req, res) {
     const params = req.body;
 
-    if (!params.text || !params.receiver) return res.status(200).send({message: 'Please fill all the fields!'});
+    if (!params.text || !params.receiver || !params.comesFrom) return res.status(200).send({message: 'Please fill all the fields!'});
 
     let message = new Message();
-    message.emitter = req.user.sub;
+    message.emitter = params.emitter;
     message.receiver = params.receiver;
     message.text = params.text;
-    message.createdAt = moment().unix();
+    message.filesMessage = params.filesMessage;
+    message.comesFrom = params.comesFrom;
     message.viewed = false;
 
     message.save((err, messageStored) => {
@@ -33,7 +34,7 @@ function saveMessage (req, res) {
 
         if(!messageStored) return res.status(200).send({message: 'Error to send message'});
 
-        return res.status(200).send({message: messageStored});
+        return res.status(200).send({messageSent: messageStored});
     });
 }
 
@@ -49,7 +50,7 @@ function getReceivedMessages (req, res) {
 
     let itemsPerPage = 4;
 
-    Message.find({receiver: userId}).populate('emitter', '_id username').paginate(page, itemsPerPage, (err, messages, total) => {
+    Message.find({receiver: userId}).populate('emitter receiver', '_id username').paginate(page, itemsPerPage, (err, messages, total) => {
         if (err) return res.status(500).send({message: 'Error in user request'});
         
         if(!messages) return res.status(404).send({message: 'No messages'});
@@ -60,6 +61,27 @@ function getReceivedMessages (req, res) {
             messages
         });
     });
+}
+
+/* *** get chat messages *** */
+async function getChatMessages (req, res) {
+    let userId = req.user.sub;
+    let receiverId = req.params.receiver;
+
+    let messagesStored = await Message.find({emitter: userId, receiver: receiverId}).populate('emitter receiver', '_id username').then((chatMessages) => { 
+
+        if(!chatMessages) return res.status(404).send({message: 'El chat no existe'});
+
+        return chatMessages;
+    }).catch((err) => {
+        return res.status(500).send({message: 'Error al devolver el chat: ' + err});
+    });
+
+    return res.status(200).send(
+        { 
+             chatMessages: messagesStored,
+        }
+    );
 }
 
 /* *** get emit messages *** */
@@ -116,6 +138,7 @@ function setViewedMessages (req, res) {
 module.exports = {
     test,   
     saveMessage,
+    getChatMessages,
     getReceivedMessages,
     getSentMessages,
     unviewedMessages,

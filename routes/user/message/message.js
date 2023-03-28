@@ -11,6 +11,8 @@ let mdUpload = multipart({uploadDir: './uploads/publish-now/publish-project'});
 router.get('/test-message', mdAuth.ensureAuth, messageController.test);
 /* *** save message *** */
 router.post('/message', mdAuth.ensureAuth, messageController.saveMessage);
+/* *** get chat messages *** */
+router.get('/chat-messages/:receiver?', mdAuth.ensureAuth, messageController.getChatMessages);
 /* *** get received message *** */
 router.get('/my-messages/:page?', mdAuth.ensureAuth, messageController.getReceivedMessages);
 /* *** get sent message *** */

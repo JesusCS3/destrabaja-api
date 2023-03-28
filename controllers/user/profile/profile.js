@@ -117,8 +117,9 @@ async function getProfile (req, res) {
 
 /* *** update profile data *** */
 function updateProfile (req, res) {
-  let profileId = req.params.id;
   let update = req.body;
+  console.log(update);
+  let profileId = update.id;
 
   Profile. findOne({'user': req.user.sub, '_id': profileId}).exec().then((profile) => {
     if (profile){
