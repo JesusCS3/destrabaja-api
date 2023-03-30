@@ -288,13 +288,16 @@ function updateUser (req, res) {
 /* *** upload img file *** */
 function uploadImage (req, res){
   let userId = req.params.id;
+  console.log(userId);
 
   if (req.files){
     let filePath = req.files.image.path;
+    console.log(filePath);
     let fileSplit = filePath.split('\/');
-    let fileName = fileSplit[2];
+    let fileName = fileSplit[3];
     let extSplit = fileName.split('\.');
     let fileExt = extSplit[1];
+    console.log(fileExt);
 
     if (userId != req.user.sub){
       return removeFilesOfUploads(res,filePath, 'Does not have permission to update image');
