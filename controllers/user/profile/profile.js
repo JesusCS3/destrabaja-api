@@ -99,20 +99,20 @@ function deleteProfile (req, res) {
 async function getProfile (req, res) {
   let profileId = req.params.id;
 
-  let profilePublished = await Profile.findOne({user: profileId}).populate('user', {image:1, username:1}).then((profile) => { 
+  try {
+    let profilePublished = await Profile.findOne({user: profileId}).populate('user', {image:1, username:1});
 
-    if(!profile) return res.status(404).send({message: 'El perfil no existe'});
+    if(!profilePublished) return res.status(404).send({message: 'El perfil no existe'});
 
-    return profile;
-  }).catch((err) => {
-    return res.status(500).send({message: 'Error al devolver el perfil: ' + err});
-  });
-
-  return res.status(200).send(
-    { 
-      profile: profilePublished,
-    }
-  );
+    return res.status(200).send(
+      { 
+        profile: profilePublished,
+      }
+    );
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({message: 'Error al devolver el perfil: ' + error});
+  }
 }
 
 /* *** update profile data *** */

@@ -66,8 +66,8 @@ function getProjects (req, res) {
 
   Project.find({user: userId}).select({videoProject:1, images:1, name:1, shortDescription:1, status:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, projects, total) => {
     if (err) return res.status(500).send({message: 'Error when returning projects'});
-
-    if (!projects) return res.status(404).send({message: 'There are no projects'});
+    
+    if (!projects) return res.status(200).send({message: 'There are no projects'});
 
     return res.status(200).send({
       totalItems: total,

@@ -117,7 +117,7 @@ function getServices (req, res) {
   Service.find({user: userId}).select({videoService:1, images:1, name:1, shortDescription:1, clientPricePlanOne:1, status:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, services, total) => {
     if (err) return res.status(500).send({message: 'Error when returning services'});
 
-    if (!services) return res.status(404).send({message: 'There are no services'});
+    if (!services) return res.status(200).send({message: 'There are no services'});
 
     return res.status(200).send({
       totalItems: total,

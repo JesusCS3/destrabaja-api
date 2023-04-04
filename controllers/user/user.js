@@ -342,6 +342,38 @@ function getImageFile (req, res){
   });
 }
 
+/* *** new password *** */
+async function newPassword (req, res){
+  console.log(req.params);
+  let username = req.params.email;
+  let newPassword = req.params.newPassword;
+  let user = new User();
+
+  if(!username) return res.status(400).send({message: 'El username es requerido'});
+
+  if(!newPassword) return res.status(400).send({message: 'El nuevo password es requerido'});
+
+  try {
+    let userAccount = await User.findOneOrFail({email: username.toLowerCase()});
+
+    if(userAccount){
+      bcrypt.hash(params.password, null, null, async (err, hash) => {
+        user.password = hash;
+  
+        /* *** store data *** */
+        let changePass = await user.save();
+
+        if(!changePass) return res.status(404).send({message: 'Algo salio mal!'});
+
+        if(changePass) return res.status(200).send({message: 'Se ha cambiado la contraseña!'});
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(401).send({message: 'Algo salio mal!'});
+  }
+}
+
 module.exports = {
     test,
     home,
@@ -352,5 +384,6 @@ module.exports = {
     getCounters,
     updateUser,
     uploadImage,
-    getImageFile
+    getImageFile,
+    newPassword,
 }
