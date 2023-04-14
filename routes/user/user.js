@@ -29,6 +29,6 @@ router.post('/upload-img-user/:id', [mdAuth.ensureAuth, mdUpload], userControlle
 /* *** get img file *** */
 router.get('/get-img-user/:imageFile', userController.getImageFile);
 /* *** new password *** */
-router.put('/new-password', mdAuth.ensureAuth, userController.newPassword);
+router.put('/new-password', userController.newPassword);
 
 module.exports = router;

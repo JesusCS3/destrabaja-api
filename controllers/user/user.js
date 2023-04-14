@@ -344,24 +344,21 @@ function getImageFile (req, res){
 
 /* *** new password *** */
 async function newPassword (req, res){
-  console.log(req.params);
-  let username = req.params.email;
-  let newPassword = req.params.newPassword;
-  let user = new User();
+  let params = req.body;
+  let username = params.email.toLowerCase();
+  let newPassword = params.newPassword;
 
   if(!username) return res.status(400).send({message: 'El username es requerido'});
 
   if(!newPassword) return res.status(400).send({message: 'El nuevo password es requerido'});
 
   try {
-    let userAccount = await User.findOneOrFail({email: username.toLowerCase()});
-
+    let userAccount = await User.findOne({email: username});
     if(userAccount){
-      bcrypt.hash(params.password, null, null, async (err, hash) => {
-        user.password = hash;
-  
+      bcrypt.hash(newPassword, null, null, async (err, hash) => {
+        const password = hash;
         /* *** store data *** */
-        let changePass = await user.save();
+        let changePass = await User.findByIdAndUpdate(userAccount._id, {password: password}, {new: true});
 
         if(!changePass) return res.status(404).send({message: 'Algo salio mal!'});
 

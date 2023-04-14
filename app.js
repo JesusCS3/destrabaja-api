@@ -10,6 +10,7 @@ const profileRoutes = require('./routes/user/profile/profile');
 const serviceRoutes = require('./routes/publish-now/publish-service/service');
 const projectRoutes = require('./routes/publish-now/publish-project/project');
 const messageRoutes = require('./routes/user/message/message');
+const paymentsRoutes = require('./routes/payments/payments');
 
 /* *** middleware *** */
 
@@ -32,6 +33,7 @@ app.use('/api', profileRoutes);
 app.use('/api', serviceRoutes);
 app.use('/api', projectRoutes);
 app.use('/api', messageRoutes);
+app.use('/api', paymentsRoutes);
 
 /* *** export *** */
 module.exports = app;

@@ -67,21 +67,29 @@ function getReceivedMessages (req, res) {
 async function getChatMessages (req, res) {
     let userId = req.user.sub;
     let receiverId = req.params.receiver;
+    
+    console.log(userId);
+    console.log(receiverId);
+    
+    try {
+        let chatMsgs = await Message.find({emitter: userId, receiver: receiverId}).populate('emitter receiver', '_id username');
 
-    let messagesStored = await Message.find({emitter: userId, receiver: receiverId}).populate('emitter receiver', '_id username').then((chatMessages) => { 
+        let chatMsgsRe = await Message.find({emitter: receiverId, receiver: userId}).populate('emitter receiver', '_id username');
+        
+        if(!chatMsgs) return res.status(404).send({message: 'El chat no existe'});
 
-        if(!chatMessages) return res.status(404).send({message: 'El chat no existe'});
+        return res.status(200).send(
+          { 
+            chatMessages: chatMsgs,
+            chatMessagesRe: chatMsgsRe,
+          }
+        );
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({message: 'Error al devolver el perfil: ' + error});
+    }
 
-        return chatMessages;
-    }).catch((err) => {
-        return res.status(500).send({message: 'Error al devolver el chat: ' + err});
-    });
-
-    return res.status(200).send(
-        { 
-             chatMessages: messagesStored,
-        }
-    );
+    
 }
 
 /* *** get emit messages *** */
