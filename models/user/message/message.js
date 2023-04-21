@@ -1,4 +1,95 @@
 const mongoose = require('mongoose');
+/*
+const messageSchema = new mongoose.Schema(
+    {
+        message: {
+            text: {
+                type: String,
+                required: true,
+            },
+        },
+        filesMessage: {
+            type:Array,
+        },
+        comesFrom: {
+            type: String,
+        },
+        viewed: {
+            type: Boolean
+        },
+        users: {
+            emitter: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'user',
+                required: true,
+            },
+            receiver: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'user',
+                required: true,
+            },
+        },
+        sender: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'user',
+            required: true,
+        },
+        service: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'service',
+            required: true,
+        },
+        createdAt: {
+            type: Date,
+        },
+    },
+    {
+        timestamps: true,
+    },
+);
+*/
+
+/*
+const messageSchema = new mongoose.Schema(
+    {
+        message: {
+            text: {
+                type: String,
+                required: true,
+            },
+        },
+        filesMessage: {
+            type:Array,
+        },
+        comesFrom: {
+            type: String,
+        },
+        viewed: {
+            type: Boolean
+        },
+        users: {
+            type:Array,
+        },
+        sender: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'user',
+            required: true,
+        },
+        service: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'service',
+            required: true,
+        },
+        createdAt: {
+            type: Date,
+        },
+    },
+    {
+        timestamps: true,
+    },
+);
+*/
+
 
 const messageSchema = new mongoose.Schema(
     {
@@ -22,8 +113,13 @@ const messageSchema = new mongoose.Schema(
     viewed: {
         type: Boolean
     },
+    service: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'service',
+        required: true,
+    },
     createdAt: {
-        type: String
+        type: Date,
     },
     },
     {

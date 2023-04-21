@@ -158,20 +158,94 @@ function getAllServices (req, res) {
 async function getServicesById (req, res) {
   let serviceId = req.params.id;
 
-  let servicePublished = await Service.findById(serviceId).sort('-createdAt').populate('user', {image:1, username:1}).then((service) => { 
+  try {
+    let servicePublished = await Service.findById(serviceId).sort('-createdAt').populate('user', {image:1, username:1});
 
-    if(!service) return res.status(404).send({message: 'The service does not exist'});
+    if(!servicePublished) return res.status(404).send({message: 'El servicio no existe'});
 
-    return service;
-  }).catch((err) => {
-    return res.status(500).send({message: 'Error when returning service: ' + err});
-  });
+    return res.status(200).send(
+      { 
+        service: servicePublished,
+      }
+    );
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({message: 'Error al devolver el servicio: ' + error});
+  }
+}
 
-  return res.status(200).send(
-    { 
-      service: servicePublished,
+/* *** get service purchased by id *** */
+async function getServicePurchasedById (req, res) {
+  let serviceId = req.params.id;
+  let plan = req.params.plan;
+
+  try {
+    if(plan === 'one'){
+      let serviceOne = await Service.findById(serviceId).select({name:1, namePlanOne:1, clientPricePlanOne:1, deliveryTimePlanOne:1, requirement:1, videoService:1, images:1, })
+
+      if(!serviceOne) return res.status(404).send({message: 'El servicio no existe'});
+
+      return res.status(200).send(
+        { 
+          service: {
+            id: serviceOne._id,
+            name: serviceOne.name,
+            plan: serviceOne.namePlanOne,
+            clientPrice: serviceOne.clientPricePlanOne,
+            deliveryTime: serviceOne.deliveryTimePlanOne,
+            requirement: serviceOne.requirement,
+            videoService: serviceOne.videoService,
+            images: serviceOne.images,
+          },
+        }
+      );
     }
-  );
+
+    if(plan === 'two'){
+      let serviceTwo = await Service.findById(serviceId).select({name:1, namePlanTwo:1, clientPricePlanTwo:1, deliveryTimePlanTwo:1, requirement:1, videoService:1, images:1, })
+
+      if(!serviceTwo) return res.status(404).send({message: 'El servicio no existe'});
+
+      return res.status(200).send(
+        { 
+          service: {
+            id: serviceTwo._id,
+            name: serviceTwo.name,
+            plan: serviceTwo.namePlanTwo,
+            clientPrice: serviceTwo.clientPricePlanTwo,
+            deliveryTime: serviceTwo.deliveryTimePlanTwo,
+            requirement: serviceTwo.requirement,
+            videoService: serviceTwo.videoService,
+            images: serviceTwo.images,
+          },
+        }
+      );
+    }
+
+    if(plan === 'three'){
+      let serviceThree = await Service.findById(serviceId).select({name:1, namePlanThree:1, clientPricePlanThree:1, deliveryTimePlanThree:1, requirement:1, videoService:1, images:1, })
+
+      if(!serviceThree) return res.status(404).send({message: 'El servicio no existe'});
+
+      return res.status(200).send(
+        { 
+          service: {
+            id: serviceThree._id,
+            name: serviceThree.name,
+            plan: serviceThree.namePlanThree,
+            clientPrice: serviceThree.clientPricePlanThree,
+            deliveryTime: serviceThree.deliveryTimePlanThree,
+            requirement: serviceThree.requirement,
+            videoService: serviceThree.videoService,
+            images: serviceThree.images,
+          },
+        }
+      );
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({message: 'Error al devolver el servicio: ' + error});
+  }
 }
 
 /* *** delete service *** */
@@ -418,6 +492,7 @@ module.exports = {
     getServices,
     getAllServices,
     getServicesById,
+    getServicePurchasedById,
     deleteService,
     updateService,
     updateStatusService,

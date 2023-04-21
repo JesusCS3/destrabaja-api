@@ -20,6 +20,8 @@ router.get('/services/:page?', mdAuth.ensureAuth, serviceController.getServices)
 router.get('/all-services/:page?', mdAuth.ensureAuth, serviceController.getAllServices);
 /* *** get services by id *** */
 router.get('/service/:id?', mdAuth.ensureAuth, serviceController.getServicesById);
+/* *** get service purchased by id *** */
+router.get('/service-purchased/:id?/:plan?', mdAuth.ensureAuth, serviceController.getServicePurchasedById);
 /* *** delete service *** */
 router.delete('/service/:id?', mdAuth.ensureAuth, serviceController.deleteService);
 /* *** update service data *** */
