@@ -108,7 +108,7 @@ async function getChatMessages (req, res) {
 
 /* *** get last messages *** */
 async function getLastMessages(req, res) {
-
+    console.log(req.params);
     let userId = req.params.id;
     let comesFrom = req.params.comesFrom;
 
