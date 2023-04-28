@@ -94,7 +94,7 @@ const serviceSchema = new mongoose.Schema(
         type: String
     },
     createdAt: {
-        type: String
+        type: Date,
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,

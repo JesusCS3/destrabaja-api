@@ -14,9 +14,9 @@ router.get('/test-service', mdAuth.ensureAuth, serviceController.test);
 router.post('/service', mdAuth.ensureAuth, serviceController.saveService);
 /* *** get services from people I follow *** */
 router.get('/services-follow/:page?', mdAuth.ensureAuth, serviceController.getServices);
-/* *** get projects *** */
+/* *** get services *** */
 router.get('/services/:page?', mdAuth.ensureAuth, serviceController.getServices);
-/* *** get all projects *** */
+/* *** get all services *** */
 router.get('/all-services/:page?', mdAuth.ensureAuth, serviceController.getAllServices);
 /* *** get services by id *** */
 router.get('/service/:id?', mdAuth.ensureAuth, serviceController.getServicesById);

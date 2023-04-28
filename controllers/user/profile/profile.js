@@ -36,7 +36,6 @@ function saveProfile (req, res) {
     profile.publishCheck = params.publishCheck;
     profile.rfc = params.rfc;
     profile.user = req.user.sub;
-    profile.createdAt = moment().unix();
 
     /* *** control duplicate users *** */
     Profile.find({user: profile.user}).exec((err, users) => {

@@ -1,10 +1,8 @@
 const mongoosePagination = require('mongoose-pagination');
 const fs = require('fs');
 const path = require('path');
-const moment = require('moment');
 
 const Service = require('../../../models/publish-now/publish-service/service');
-const User = require('../../../models/user/user');
 const Follow = require('../../../models/user/follow/follow');
 
 /* *** test *** */
@@ -15,10 +13,59 @@ function test (req, res) {
 }
 
 /* *** save service *** */
-function saveService (req, res) {
+async function saveService (req, res) {
   let params = req.body;
+
+  if(!params.generalInfo.name || !params.generalInfo.category || !params.generalInfo.subcategory
+    || !params.description.shortDescription)
+    return res.status(200).send({message: 'Rellene todos los campos obligatorios!'});
+  
+  try {
+    let service = new Service();
+
+    service.name = params.generalInfo.name;
+    service.hashtags = params.generalInfo.hashtags;
+    service.category = params.generalInfo.category;
+    service.subcategory = params.generalInfo.subcategory;
+    service.videoService = null;
+    service.images = null;
+    service.shortDescription = params.description.shortDescription;
+    service.longDescription = params.description.longDescription;
+    service.checkPlanTwo = params.levels.checkPlanTwo;
+    service.checkPlanThree = params.levels.checkPlanThree;
+    service.namePlanOne = params.levels.namePlanOne;
+    service.namePlanTwo = params.levels.namePlanTwo;
+    service.namePlanThree = params.levels.namePlanThree;
+    service.deliverables = params.levels.deliverables;
+    service.deliveryTimePlanOne = params.levels.deliveryTimePlanOne;
+    service.deliveryTimePlanTwo = params.levels.deliveryTimePlanTwo;
+    service.deliveryTimePlanThree = params.levels.deliveryTimePlanThree;
+    service.commentPlanOne = params.levels.commentPlanOne;
+    service.commentPlanTwo = params.levels.commentPlanTwo;
+    service.commentPlanThree = params.levels.commentPlanThree;
+    service.pricePlanOne = params.levels.pricePlanOne;
+    service.pricePlanTwo = params.levels.pricePlanTwo;
+    service.pricePlanThree = params.levels.pricePlanThree;
+    service.clientPricePlanOne = params.levels.clientPricePlanOne;
+    service.clientPricePlanTwo = params.levels.clientPricePlanTwo;
+    service.clientPricePlanThree = params.levels.clientPricePlanThree;
+    service.extras = params.extras.extras;
+    service.requirement = params.requirements.requirement;
+    service.status = 'active';
+    service.user = req.user.sub;
+
+    let serviceStored = await service.save();
+        
+      if(!serviceStored) return res.status(200).send({message: '¡Error al guardar el servicio!'});
+
+      return res.status(200).send({message: 'El servicio se guardo con éxito!'});
+  } catch (error) {
+      console.log(error);
+      return res.status(500).send({message: 'Error al guardar el servicio: ' + error});
+  }
+
+  /*
   let service = new Service();
-  console.log(params);
   if (params.generalInfo.name && params.generalInfo.category && params.generalInfo.subcategory
     && params.description.shortDescription){
     service.name = params.generalInfo.name;
@@ -50,10 +97,8 @@ function saveService (req, res) {
     service.extras = params.extras.extras;
     service.requirement = params.requirements.requirement;
     service.status = 'active';
-    service.createdAt = moment().unix();
     service.user = req.user.sub;
 
-    /* *** save service *** */
     service.save((err, serviceStored) => {
       if (err) return res.status(500).send({message: '¡Error al guardar el servicio!' + err});
 
@@ -67,6 +112,7 @@ function saveService (req, res) {
       message: '¡Rellene todos los campos obligatorios!'
     }); 
   }
+  */
 }
 
 /* *** get services from people I follow *** */
@@ -181,7 +227,11 @@ async function getServicePurchasedById (req, res) {
 
   try {
     if(plan === 'one'){
-      let serviceOne = await Service.findById(serviceId).select({name:1, namePlanOne:1, clientPricePlanOne:1, deliveryTimePlanOne:1, requirement:1, videoService:1, images:1, })
+      let serviceOne = await Service.findById(serviceId).select({name:1, namePlanOne:1, 
+        clientPricePlanOne:1, deliveryTimePlanOne:1, requirement:1, videoService:1, images:1, 
+        user:1 }).populate('user', {username:1});
+
+      console.log(serviceOne);
 
       if(!serviceOne) return res.status(404).send({message: 'El servicio no existe'});
 
@@ -196,13 +246,16 @@ async function getServicePurchasedById (req, res) {
             requirement: serviceOne.requirement,
             videoService: serviceOne.videoService,
             images: serviceOne.images,
+            user: serviceOne.user,
           },
         }
       );
     }
 
     if(plan === 'two'){
-      let serviceTwo = await Service.findById(serviceId).select({name:1, namePlanTwo:1, clientPricePlanTwo:1, deliveryTimePlanTwo:1, requirement:1, videoService:1, images:1, })
+      let serviceTwo = await Service.findById(serviceId).select({name:1, namePlanTwo:1, 
+        clientPricePlanTwo:1, deliveryTimePlanTwo:1, requirement:1, videoService:1, images:1, 
+        user:1}).populate('user', {username:1});
 
       if(!serviceTwo) return res.status(404).send({message: 'El servicio no existe'});
 
@@ -217,13 +270,16 @@ async function getServicePurchasedById (req, res) {
             requirement: serviceTwo.requirement,
             videoService: serviceTwo.videoService,
             images: serviceTwo.images,
+            user: serviceTwo.user,
           },
         }
       );
     }
 
     if(plan === 'three'){
-      let serviceThree = await Service.findById(serviceId).select({name:1, namePlanThree:1, clientPricePlanThree:1, deliveryTimePlanThree:1, requirement:1, videoService:1, images:1, })
+      let serviceThree = await Service.findById(serviceId).select({name:1, namePlanThree:1, 
+        clientPricePlanThree:1, deliveryTimePlanThree:1, requirement:1, videoService:1, images:1, 
+        user:1}).populate('user', {username:1});
 
       if(!serviceThree) return res.status(404).send({message: 'El servicio no existe'});
 
@@ -238,6 +294,7 @@ async function getServicePurchasedById (req, res) {
             requirement: serviceThree.requirement,
             videoService: serviceThree.videoService,
             images: serviceThree.images,
+            user: serviceThree.user,
           },
         }
       );

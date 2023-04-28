@@ -7,7 +7,6 @@ const User = require('../../models/user/user');
 const Follow = require('../../models/user/follow/follow');
 const Service = require('../../models/publish-now/publish-service/service');
 const jwt = require('../../services/jwt');
-const user = require('../../models/user/user');
 
 
 /* *** test *** */

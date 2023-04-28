@@ -86,7 +86,7 @@ async function getChatMessages (req, res) {
                     {receiver: receiverId},
                 ]},
            ]
-        }).sort({updatedAt: 1});
+        }).sort({updatedAt: -1});
 
         if(messages.length > 0) {
             let chatMessages = messages.map(message => {

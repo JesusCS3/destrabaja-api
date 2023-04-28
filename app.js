@@ -11,6 +11,7 @@ const serviceRoutes = require('./routes/publish-now/publish-service/service');
 const projectRoutes = require('./routes/publish-now/publish-project/project');
 const messageRoutes = require('./routes/user/message/message');
 const paymentsRoutes = require('./routes/payments/payments');
+const purchasedServiceRoutes = require('./routes/purchased-service/purchased-service');
 
 /* *** middleware *** */
 
@@ -34,6 +35,7 @@ app.use('/api', serviceRoutes);
 app.use('/api', projectRoutes);
 app.use('/api', messageRoutes);
 app.use('/api', paymentsRoutes);
+app.use('/api', purchasedServiceRoutes);
 
 /* *** export *** */
 module.exports = app;

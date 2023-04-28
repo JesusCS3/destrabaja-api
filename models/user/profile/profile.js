@@ -57,7 +57,7 @@ const profileSchema = new mongoose.Schema(
         ref: 'user'
     },
     createdAt: {
-        type: String
+        type: Date,
     },
     },
     {

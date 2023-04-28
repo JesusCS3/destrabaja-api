@@ -28,12 +28,9 @@ async function createCheckOutSession(req, res){
             ],
             mode: 'payment',
             success_url: item.success,
-            cancel_url: item.success,
-            //cancel_url: item.cancel,
-            //cancel_url: item.success + `/successful-payment/?id=` + item.id + `&` + `name=` + item.name
+            cancel_url: item.cancel,
           });
-          console.log(session);
-        //res.redirect(303, session.url);
+          //console.log(session);
     
         return res.status(200).json(session);
 
