@@ -1,11 +1,7 @@
-const mongoosePagination = require('mongoose-pagination');
 const fs = require('fs');
 const path = require('path');
-const moment = require('moment');
 
 const Profile = require('../../../models/user/profile/profile');
-const User = require('../../../models/user/user');
-const Follow = require('../../../models/user/follow/follow');
 
 /* *** test *** */
 function test (req, res) {
@@ -15,12 +11,16 @@ function test (req, res) {
 }
 
 /* *** save profile *** */
-function saveProfile (req, res) {
+async function saveProfile (req, res) {
   let params = req.body;
-  let profile = new Profile();
 
-  if (params.name && params.fatherLastName && params.motherLastName && params.gender 
-    && params.dateBirth && params.contry && params.city && params.publishCheck){
+  if(!params.name || !params.fatherLastName || !params.motherLastName || !params.gender 
+    || !params.dateBirth || !params.contry || !params.city || !params.publishCheck)
+    return res.status(200).send({message: '¡Rellene todos los campos obligatorios!'});
+
+  try {
+    let profile = new Profile();
+
     profile.profileImg = null;
     profile.name = params.name;
     profile.fatherLastName = params.fatherLastName;
@@ -35,49 +35,32 @@ function saveProfile (req, res) {
     profile.previousWork = null;
     profile.publishCheck = params.publishCheck;
     profile.rfc = params.rfc;
-    profile.user = req.user.sub;
+    profile.user = params.user;
 
     /* *** control duplicate users *** */
-    Profile.find({user: profile.user}).exec((err, users) => {
-      if(err) return res.status(500).send({message: 'Error en la solicitud'});
+    let duplicateUser = await Profile.find({user: profile.user});
 
-      if(users && users.length >= 1){
-        return res.status(200).send({message: 'El usuario ya tiene un perfil'});
-      }else{
-        /* *** control duplicate rfc *** */
-        if (profile.rfc.toUpperCase().length >= 12 && profile.rfc.toUpperCase().length <= 13){
-          Profile.find({rfc: profile.rfc.toUpperCase()}).exec((err, rfcs) => {
-            if(err) return res.status(500).send({message: 'Error en la solicitud'});
-  
-            if(rfcs && rfcs.length >= 1){
-              return res.status(200).send({message: 'El RFC ya existe'});
-            }else{
-              profile.save((err, profileStored) => {
-                if (err) return res.status(500).send({message: '¡Error al guardar el perfil!'});
-          
-                if (!profileStored) return res.status(404).send({message: '¡No se ha guardado el perfil!'});
-          
-                return res.status(200).send({profile: profileStored});
-              });
-            }
-          });
-        }
+    if(duplicateUser && duplicateUser.length >= 1){
+      return res.status(200).send({message: 'El usuario ya tiene un perfil'});
+    }
 
-        profile.save((err, profileStored) => {
-          if (err) return res.status(500).send({message: '¡Error al guardar el perfil!'});
-    
-          if (!profileStored) return res.status(404).send({message: '¡No se ha guardado el perfil!'});
-    
-          return res.status(200).send({profile: profileStored});
-        });
-        
+    if (profile.rfc.toUpperCase().length === 12 && profile.rfc.toUpperCase().length <= 13){
+      let rfc = await Profile.find({rfc: profile.rfc.toUpperCase()});
+
+      if(rfc && rfc.length >= 1){
+        return res.status(200).send({message: 'El RFC ya existe'});
       }
-    });
+    }
 
-  }else{
-    return res.status(200).send({
-      message: '¡Rellene todos los campos obligatorios!'
-    }); 
+    let profileStored = await profile.save();
+        
+    if(!profileStored) return res.status(200).send({message: 'Error al guardar el perfil!'});
+
+    return res.status(200).send({profile: profileStored});
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({message: 'Error al guardar el servicio adquirido: ' + error});
   }
 }
 

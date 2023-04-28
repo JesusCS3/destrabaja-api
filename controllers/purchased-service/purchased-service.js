@@ -10,8 +10,6 @@ function test (req, res) {
 /* *** save purchased service *** */
 async function savePurchasedService (req, res) {
     let params = req.body;
-    
-  console.log(params);
 
     if (!params.service || !params.user || !params.plan || !params.startDate || !params.endDate) 
     return res.status(200).send({message: 'Por favor, rellene todos los campos!'});
@@ -52,7 +50,9 @@ async function getPurchasedServices (req, res) {
 
   let itemsPerPage = 6;
 
-    await PurchasedService.find({user: userId}).sort('-createdAt').populate('service', {images:1, name:1, user:1}).paginate(page, itemsPerPage, (err, purchased, total) => {
+    await PurchasedService.find({user: userId}).sort('-createdAt').
+    populate('service', {images:1, name:1, user:1, namePlanOne:1, namePlanTwo:1, namePlanThree:1}).
+    paginate(page, itemsPerPage, (err, purchased, total) => {
         console.log(purchased);
         if (err) return res.status(500).send({message: 'Error al regresar servicios adquiridos: ' + err});
         
