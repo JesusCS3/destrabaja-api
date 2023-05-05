@@ -73,7 +73,17 @@ async function getPurchasedServicesById (req, res) {
   let serviceId = req.params.id;
 
   try {
-    let servicePublished = await PurchasedService.findById(serviceId).sort('-createdAt').populate('user', {image:1, username:1});
+    let servicePublished = await PurchasedService.findById(serviceId).sort('-createdAt').
+    populate({
+      path: 'service',
+      select: 'images name user namePlanOne namePlanTwo namePlanThree deliverables',
+      populate: {
+        path: 'user',
+        select: 'username image',
+      }
+    });
+    //populate('service', {images:1, name:1, user:1, namePlanOne:1, namePlanTwo:1, namePlanThree:1, deliverables:1}).
+    //populate('service.user', {image:1, username:1});
 
     if(!servicePublished) return res.status(404).send({message: 'El servicio adquirido no existe'});
 

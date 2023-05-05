@@ -86,7 +86,7 @@ async function getChatMessages (req, res) {
                     {receiver: receiverId},
                 ]},
            ]
-        }).sort({updatedAt: -1});
+        }).sort({updatedAt: 1});
 
         if(messages.length > 0) {
             let chatMessages = messages.map(message => {
@@ -118,6 +118,7 @@ async function getLastMessages(req, res) {
                 {
                     $match: {
                         $and: [
+                            //{service: {$exists: true, $not: {$size: 0}}},
                             { comesFrom: comesFrom },
                             {
                                 $or: [
@@ -162,6 +163,7 @@ async function getLastMessages(req, res) {
                                 receiver: "$receiver",
                                 message: "$text",
                                 service: "$service",
+                                comesFrom: "$comesFrom",
                                 addAt: "$updatedAt",
                             },
                         },
@@ -169,18 +171,6 @@ async function getLastMessages(req, res) {
                             $last: "$updatedAt",
                         },
                     },
-                },
-                {
-                    $lookup:
-                      {
-                        from: "users",
-                        localField: "_id",
-                        foreignField: "_id",
-                        pipeline: [
-                            { $project: { _id: 1, username: 1, image: 1 } },
-                        ],
-                        as: "usersChat"
-                      }
                 },
                 {
                     $addFields: {
@@ -207,17 +197,35 @@ async function getLastMessages(req, res) {
                 { 
                     $project: { 
                         _id: 0,
-                        usersChat: 1, 
                         lastMsg: 1, 
                     } 
                 },
             ]
         );
-    
-        return res.status(200).send({
-            count: lastMsgs.length,
-            lastMsgs,
-        });        
+
+        console.log(lastMsgs);
+
+        if(lastMsgs.length > 0) {
+            let chatMessages = lastMsgs.map(message => {
+                return {
+                    fromSelf: message.lastMsg.emitter.toString() === userId,
+                    emitter: message.lastMsg.emitter,
+                    receiver: message.lastMsg.receiver,
+                    message: message.lastMsg.message,
+                    service: message.lastMsg.service,
+                    comesFrom: message.lastMsg.comesFrom,
+                    addAt: message.lastMsg.addAt,
+                };
+            });
+            console.log(chatMessages);
+            await Message.populate(chatMessages, (
+                {
+                    path: 'emitter , receiver',
+                    select: '_id username image',
+                }
+            ));
+            return res.status(200).send(chatMessages);
+        }      
     } catch (error) {
         console.log(error);
         return res.status(500).send({message: 'Error al devolver los ultimos mensajes de chat: ' + error});
