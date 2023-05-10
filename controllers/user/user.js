@@ -69,17 +69,19 @@ function saveUser (req, res) {
 }
 
 /* *** signin *** */
-function loginUser (req, res) {
+async function loginUser (req, res) {
   let params = req.body;
   
   let email = params.email;
   let password = params.password;
 
-  User.findOne({email: email}, (err, user) => {
-    if(err) return res.status(500).send({message: 'Error en la solicitud.'});
+  try {
+    let user = await User.findOne({email: email}).select({username:1, image:1, password:1});
 
     if(user){
       bcrypt.compare(password, user.password, (err, check) => {
+        if(err) return res.status(500).send({message: 'Error en la solicitud: ' + err});
+
         if(check){
           if(params.gettoken){
             /* *** generate and return token *** */
@@ -98,29 +100,48 @@ function loginUser (req, res) {
     }else{
       return res.status(404).send({message: 'No se ha podido identificar al usuario.'});
     }
-
-  });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({message: 'Error al devolver el usuario: ' + error});
+  }
 }
 
 /* *** get user *** */
-function getUser(req, res) {
+async function getUser(req, res) {
   let userId = req.params.id;
 
-  User.findById(userId, (err, user) => {
-    if (err) return res.status(500).send({message: 'Error en la solicitud.'});
+  try {
+    let user = await User.findById(userId).select({password:0, createdAt:0, updatedAt:0, __v:0});
 
     if (!user) return res.status(404).send({message: 'Usuario no encontrado.'});
 
-    followThisUser(req.user.sub, userId).then((value) =>{
-      user.password = undefined;
+    let follow = await followThisUser(req.user.sub, userId);
 
-      return res.status(200).send({
-        user, 
-        following: value.following,
-        followed: value.followed
-      });
+    return res.status(200).send({
+      user, 
+      following: follow.following,
+      followed: follow.followed
     });
-  });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({message: 'Error al devolver el usuario: ' + error});
+  }
+}
+
+/* *** get user (update identity) *** */
+async function updateIdentity(req, res) {
+  let userId = req.params.id;
+
+  try {
+    let user = await User.findById(userId).select({username:1, image:1});
+
+    if (!user) return res.status(404).send({message: 'Usuario no encontrado.'});
+
+    return res.status(200).send({user});
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({message: 'Error al devolver el usuario: ' + error});
+  }
 }
 
 /* *** follow this user? *** */
@@ -285,45 +306,54 @@ function updateUser (req, res) {
 }
 
 /* *** upload img file *** */
-function uploadImage (req, res){
+async function uploadImage (req, res){
   let userId = req.params.id;
-  console.log(userId);
+  let filePath, fileSplit, fileName, extSplit, fileExt;
 
-  if (req.files){
-    let filePath = req.files.image.path;
-    console.log(filePath);
-    let fileSplit = filePath.split('\/');
-    let fileName = fileSplit[3];
-    let extSplit = fileName.split('\.');
-    let fileExt = extSplit[1];
-    console.log(fileExt);
-
-    if (userId != req.user.sub){
-      return removeFilesOfUploads(res,filePath, 'Does not have permission to update image');
+  try {
+    if (req.files){
+      filePath = req.files.image.path;
+      fileSplit = filePath.split(/[\\/]/);
+      fileName = fileSplit[3];
+      extSplit = fileName.split('\.');
+      fileExt = extSplit[1];
+    }
+  
+    if(!fileExt == 'png' || !fileExt == 'jpg' || !fileExt == 'jpeg' || !fileExt == 'gif'){
+      return removeFilesOfUploads(res, filePath, 'Extension invalida!');
     }
 
-    if(fileExt == 'png' || fileExt == 'jpg' || fileExt == 'jpeg' || fileExt == 'gif'){
-      /* *** update image *** */
-      User.findByIdAndUpdate(userId, {image: fileName}, {new: true}, (err, userUpdated) => {
-        if (err) return res.status(500).send({message: 'Error in request'});
+    let userImg = await User.findById(userId).select({image:1});
 
-        if (!userUpdated) return res.status(404).send({message: 'Could not update user data'});
+    if (!userImg) return res.status(404).send({message: 'Usuario no encontrado.'});
 
-        return res.status(200).send({user: userUpdated});
+    if(userImg.image){ 
+      let filePathDelete = './uploads/users/img/' + userImg.image;
+      fs.unlink(filePathDelete, (err) => {
+        if (err) throw err;
       });
-    }else{
-      return removeFilesOfUploads(res, filePath, 'Invalid extension');
     }
+  
+    let user = await User.findByIdAndUpdate(userId, {image: fileName}, {new: true}).select({username:1, image:1});
 
-  }else{
-    return res.status(200).send({message: 'No image uploaded'});
+    if (!user) return res.status(404).send({message: 'Usuario no actualizado.'});
+
+    return res.status(200).send({user});
+  } catch (error) {
+    console.log(error);
+    
+    fs.unlink(filePath, (err) => {
+      if (err) throw err;
+    });
+    return res.status(500).send({message: 'Error al actualizar imagen: ' + error});
   }
 }
 
 /* *** remove img file of uploads *** */
 function removeFilesOfUploads (res, filePath, message){
   fs.unlink(filePath, (err) =>{
-    return res.status(200).send({message: message});
+    if (err) throw err;
+    return res.status(200).send({message: message + ' ' + err});
   });
 }
 
@@ -376,6 +406,7 @@ module.exports = {
     saveUser,
     loginUser,
     getUser,
+    updateIdentity,
     getUsers,
     getCounters,
     updateUser,

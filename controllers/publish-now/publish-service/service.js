@@ -556,5 +556,5 @@ module.exports = {
     uploadImage,
     getImageFile,
     uploadVideo,
-    getVideoFile
+    getVideoFile,
 }

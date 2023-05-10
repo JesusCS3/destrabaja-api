@@ -18,6 +18,8 @@ router.post('/signup', userController.saveUser);
 router.post('/signin', userController.loginUser);
 /* *** get user *** */
 router.get('/user/:id', mdAuth.ensureAuth, userController.getUser);
+/* *** get user *** */
+router.get('/update-identity/:id', mdAuth.ensureAuth, userController.updateIdentity);
 /* *** get paginated users *** */
 router.get('/users/:page?', mdAuth.ensureAuth, userController.getUsers);
 /* *** get counters *** */
