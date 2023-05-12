@@ -56,12 +56,14 @@ async function saveService (req, res) {
 
     let serviceStored = await service.save();
         
-      if(!serviceStored) return res.status(200).send({message: '¡Error al guardar el servicio!'});
+    if(!serviceStored) return res.status(200).send({message: '¡Error al guardar el servicio!'});
 
-      return res.status(200).send({message: 'El servicio se guardo con éxito!'});
+    return res.status(200).send({
+      service: serviceStored,
+    });
   } catch (error) {
       console.log(error);
-      return res.status(500).send({message: 'Error al guardar el servicio: ' + error});
+      return res.status(500).send({message: '¡Error al guardar el servicio!'});
   }
 
   /*
@@ -150,7 +152,7 @@ function getServicesFollow (req, res) {
 }
 
 /* *** get services *** */
-function getServices (req, res) {
+async function getServices (req, res) {
   let userId = req.user.sub;
   let page = 1;
 
@@ -160,7 +162,7 @@ function getServices (req, res) {
 
   let itemsPerPage = 6;
 
-  Service.find({user: userId}).select({videoService:1, images:1, name:1, shortDescription:1, clientPricePlanOne:1, status:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, services, total) => {
+  await Service.find({user: userId}).select({videoService:1, images:1, name:1, shortDescription:1, clientPricePlanOne:1, status:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, services, total) => {
     if (err) return res.status(500).send({message: 'Error when returning services'});
 
     if (!services) return res.status(200).send({message: 'There are no services'});
@@ -176,7 +178,7 @@ function getServices (req, res) {
 }
 
 /* *** get all services *** */
-function getAllServices (req, res) {
+async function getAllServices (req, res) {
   let page = 1;
 
   if (req.params.page){
@@ -185,7 +187,7 @@ function getAllServices (req, res) {
 
   let itemsPerPage = 6;
 
-  Service.find({status: 'active'}).select({videoService:1, images:1, name:1, shortDescription:1, clientPricePlanOne:1, status:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, services, total) => {
+  await Service.find({status: 'active'}).select({videoService:1, images:1, name:1, shortDescription:1, clientPricePlanOne:1, status:1, createdAt:1}).sort('-createdAt').populate('user', {image:1, username:1}).paginate(page, itemsPerPage, (err, services, total) => {
     if (err) return res.status(500).send({message: 'Error when returning services'});
 
     if (!services) return res.status(404).send({message: 'There are no services'});
@@ -367,87 +369,97 @@ console.log(statusService);
   });
 }
 
-function uploadImage (req, res) {
+async function uploadImage (req, res) {
   let serviceId = req.params.id;
+  let filePath, fileSplit, fileName, extSplit, fileExt;
 
-  if(req.files && req.files.images && Array.isArray(req.files.images)) { 
-    /* *** if images are received *** */
-    let images = req.files.images.map(file => {
-      
-      console.log(req.files.images);
-      let filePath = file.path;
-      let fileSplit = filePath.split('\/');
-      let fileName = fileSplit[4];
-      let extSplit = fileName.split('\.');
-      let fileExt = extSplit[1];
+  try {
+    if(req.files && req.files.images && Array.isArray(req.files.images)) { 
+      /* *** if images are received *** */
+      let images = req.files.images.map(file => {
+        
+        console.log(req.files.images);
+        filePath = file.path;
+        fileSplit = filePath.split(/[\\/]/);
+        fileName = fileSplit[4];
+        extSplit = fileName.split('\.');
+        fileExt = extSplit[1];
+  
+        /* *** validate extension *** */
+        if(fileExt == 'png' || fileExt == 'jpg' || fileExt == 'jpeg' || fileExt == 'gif'){
+          return fileName;
+        }else{
+          removeFilesOfUploads(res, filePath, 'Error al borrar un archivo con extensión incorrecta');
+          fileName = null;
+          return fileName;
+        }  
+      });
+  
+      /* *** create new array without null elements *** */
+      let newImages = images.filter(image => image != null);
+  
+      if (newImages.length <= 3){
+        /* *** update images *** */
+        let service = await Service. findOne({'user': req.user.sub, '_id': serviceId}).select({images:1});
 
-      /* *** validate extension *** */
-      if(fileExt == 'png' || fileExt == 'jpg' || fileExt == 'jpeg' || fileExt == 'gif'){
-        return fileName;
+        if(!service) return res.status(500).send({message: 'No tiene permiso para actualizar los datos del servicio'});
+
+        //if(service.images){}
+
+        if(service){
+          let serviceUpdated = await Service.findByIdAndUpdate(serviceId, {images: newImages}, {new: true}).
+          select({name:1, images:1});
+
+          if (!serviceUpdated) return res.status(404).send({message: 'No se han podido actualizar los datos del servicio'});
+  
+          return res.status(200).send({service: serviceUpdated});
+        }
       }else{
-        removeFilesOfUploads(res, filePath, 'Error deleting file with wrong extension');
-        fileName = null;
-        return fileName;
-      }  
-    });
-
-    /* *** create new array without null elements *** */
-    let newImages = images.filter(image => image != null);
-
-    if (newImages.length <= 3){
-      /* *** update images *** */
-      Service. findOne({'user': req.user.sub, '_id': serviceId}).exec().then((service) => {
-        if (service){
-          Service.findByIdAndUpdate(serviceId, {images: newImages}, {new: true}, (err, serviceUpdated) => {
-            if (err) return res.status(500).send({message: 'Error in request'});
-
-            if (!serviceUpdated) return res.status(404).send({message: 'Could not update user data'});
-
-            return res.status(200).send({service: serviceUpdated});
-          });
-        }else{
-          return res.status(500).send({message: 'Does not have permission to update service data'});
-        }
-      });
-    }else{
-      /* *** delete files for exceeding the allowed limit *** */
-      newImages.map(file => {
-        let filePath = './uploads/publish-now/publish-service/img/' + file;
-        removeFilesOfUploads(res, filePath, 'Error when deleting files, due to exceeding the allowed limit');
-      });
-
-      return res.status(500).send({message: 'Exceeded image limit'});
-    } 
-  } else if(req.files && req.files.images) { 
-    /* *** if an image is received *** */
-    let filePath = req.files.images.path;
-    let fileSplit = filePath.split('\/');
-    let fileName = fileSplit[4];
-    let extSplit = fileName.split('\.');
-    let fileExt = extSplit[1];
-    
-    /* *** validate extension *** */
-    if(fileExt == 'png' || fileExt == 'jpg' || fileExt == 'jpeg' || fileExt == 'gif'){
-      Service. findOne({'user': req.user.sub, '_id': serviceId}).exec().then((service) => {
-        if (service){
-          /* *** update image *** */
-          Service.findByIdAndUpdate(serviceId, {images: fileName}, {new: true}, (err, serviceUpdated) => {
-            if (err) return res.status(500).send({message: 'Error en la solicitud.'});
-
-            if (!serviceUpdated) return res.status(404).send({message: '¡No se ha podido actualizar la imagen del servicio!'});
-
-            return res.status(200).send({service: serviceUpdated});
-          });
-        }else{
-          return removeFilesOfUploads(res, filePath, '¡No tiene permiso para actualizar la imagen del servicio!');
-        }
-      });
-    }else{
-      return removeFilesOfUploads(res, filePath, 'Extensión no válida');
+        /* *** delete files for exceeding the allowed limit *** */
+        newImages.map(file => {
+          let filePath = './uploads/publish-now/publish-service/img/' + file;
+          removeFilesOfUploads(res, filePath, 'Error al borrar archivos, por exceder el límite permitido');
+        });
+  
+        return res.status(500).send({message: 'Se ha superado el límite de imágenes'});
+      } 
     }
-  } else {
-    /* *** if no images are received * ***/
-    return res.status(404).send({message: 'No hay imágenes'});
+
+    if(req.files && req.files.images) { 
+      /* *** if an image is received *** */
+      filePath = req.files.images.path;
+      fileSplit = filePath.split(/[\\/]/);
+      fileName = fileSplit[4];
+      extSplit = fileName.split('\.');
+      fileExt = extSplit[1];
+      
+      /* *** validate extension *** */
+      if(!fileExt == 'png' || !fileExt == 'jpg' || !fileExt == 'jpeg' || !fileExt == 'gif'){
+        return removeFilesOfUploads(res, filePath, 'Extension invalida!');
+      }
+
+      let service = await Service. findOne({'user': req.user.sub, '_id': serviceId}).select({images:1});
+
+      if(!service) return removeFilesOfUploads(res, filePath, '¡No tiene permiso para actualizar la imagen del servicio!');
+
+      //if(service.images){}
+
+      if(service){
+        let serviceUpdated = await Service.findByIdAndUpdate(serviceId, {images: fileName}, {new: true}).
+        select({name:1, images:1});
+
+        if (!serviceUpdated) return res.status(404).send({message: 'No se han podido actualizar los datos del servicio'});
+  
+        return res.status(200).send({service: serviceUpdated});
+      }
+    }
+  } catch (error) {
+    console.log(error);
+    
+    // fs.unlink(filePath, (err) => {
+    //   if (err) throw err;
+    // });
+    return res.status(500).send({message: 'Error al actualizar imagen: ' + error});
   }
 }
 
@@ -468,63 +480,52 @@ function getImageFile (req, res){
 /* *** remove file of uploads *** */
 function removeFilesOfUploads (res, filePath, message){
   fs.unlink(filePath, (err) =>{
-    if (err) return res.status(200).send({message: message});
+    if (err) return res.status(200).send({message: message + ' ' + err});
   });
 }
 
 /* *** upload video file *** */
-function uploadVideo (req, res){
+async function uploadVideo (req, res){
   let serviceId = req.params.id;
+  let filePath, fileSplit, fileName, extSplit, fileExt;
 
-  if (req.files){
-    let filePath = req.files.videoService.path;
-    let fileSplit = filePath.split('\/');
-    let fileName = fileSplit[4];
-    let extSplit = fileName.split('\.');
-    let fileExt = extSplit[1];
-
-    if(fileExt == 'mp4' || fileExt == 'mov' || fileExt == 'wmv' || fileExt == 'avi'){
-      Service. findOne({'user': req.user.sub, '_id': serviceId}).exec().then((service) => {
-        if (service){
-          if (service.videoService){
-
-            let previousVideo = './uploads/publish-now/publish-service/video/' + service.videoService;
-
-            fs.unlink(previousVideo, (err) =>{
-              if (err) return res.status(200).send({message: err});
-            });
-
-            /* *** update video *** */
-            Service.findByIdAndUpdate(serviceId, {videoService: fileName}, {new: true}, (err, serviceUpdated) => {
-              if (err) return res.status(500).send({message: 'Error en la solicitud.'});
-
-              if (!serviceUpdated) return res.status(404).send({message: '¡No se ha podido actualizar el video del servicio!'});
-
-              return res.status(200).send({service: serviceUpdated});
-            });
-          }
-
-          if (!service.videoService){
-            /* *** update video *** */
-            Service.findByIdAndUpdate(serviceId, {videoService: fileName}, {new: true}, (err, serviceUpdated) => {
-              if (err) return res.status(500).send({message: 'Error en la solicitud.'});
-
-              if (!serviceUpdated) return res.status(404).send({message: '¡No se ha podido actualizar el video del servicio!'});
-
-              return res.status(200).send({service: serviceUpdated});
-            });
-          }
-          
-        }else{
-          return removeFilesOfUploads(res, filePath, '¡No tiene permiso para actualizar el video del proyecto!');
-        }
-      });
-    }else{
-      return removeFilesOfUploads(res, filePath, 'Extensión no válida');
+  try {
+    if (req.files){
+      filePath = req.files.videoService.path;
+      fileSplit = filePath.split(/[\\/]/);
+      fileName = fileSplit[4];
+      extSplit = fileName.split('\.');
+      fileExt = extSplit[1];
     }
 
-  }else{
-    return res.status(200).send({message: 'No se ha cargado ningún vídeo'});
+    if(!fileExt == 'mp4' || !fileExt == 'mov' || !fileExt == 'wmv' || !fileExt == 'avi'){
+      return removeFilesOfUploads(res, filePath, 'Extension invalida!');
+    }
+
+    let videoService = await Service.findOne({'user': req.user.sub, '_id': serviceId}).select({videoService:1});
+
+    if (!videoService) return res.status(404).send({message: '¡No tiene permiso para actualizar el video del proyecto!'});
+
+    if(videoService.videoService){ 
+      let filePathDelete = './uploads/publish-now/publish-service/video/' + videoService.videoService;
+      fs.unlink(filePathDelete, (err) => {
+        if (err) throw err;
+      });
+    }
+  
+    let service = await Service.findByIdAndUpdate(serviceId, {videoService: fileName}, {new: true}).select({videoService:1});
+
+    if (!service) return res.status(404).send({message: '¡No se ha podido actualizar el video del servicio!'});
+
+    return res.status(200).send({service});
+
+  } catch (error) {
+    console.log(error);
+    
+    fs.unlink(filePath, (err) => {
+      if (err) throw err;
+    });
+    return res.status(500).send({message: 'Error al actualizar video: ' + error});
   }
 }
 

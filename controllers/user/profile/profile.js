@@ -186,8 +186,7 @@ async function uploadImage (req, res){
 /* *** remove img file of uploads *** */
 function removeFilesOfUploads (res, filePath, message){
   fs.unlink(filePath, (err) =>{
-    if (err) throw err;
-    return res.status(200).send({message: message});
+    if (err) return res.status(200).send({message: message + ' ' + err});
   });
 }
 
