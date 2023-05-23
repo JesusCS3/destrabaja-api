@@ -13,5 +13,9 @@ router.post('/purchased-service', mdAuth.ensureAuth, purchasedServiceController.
 router.get('/purchased-services/:page?', mdAuth.ensureAuth, purchasedServiceController.getPurchasedServices);
 /* *** get purchased services by id *** */
 router.get('/purchased-service/:id?', mdAuth.ensureAuth, purchasedServiceController.getPurchasedServicesById);
+/* *** update status service *** */
+router.put('/update-status-service-purchased/:id', mdAuth.ensureAuth, purchasedServiceController.updateStatusServicePurchased);
+/* *** update end date *** */
+router.put('/update-endDate/:id', mdAuth.ensureAuth, purchasedServiceController.updateDateExtension);
 
 module.exports = router;

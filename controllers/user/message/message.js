@@ -29,6 +29,11 @@ async function saveMessage (req, res) {
         message.viewed = false; 
         message.service = params.service;
 
+        //campos de prueba
+        message.purchasedService = params.purchasedService;
+        message.project = params.project;
+        message.projectStarted = params.projectStarted;
+
         let messageStored = await message.save();
         
         if(!messageStored) return res.status(200).send({message: 'Error al enviar el mensaje'});
@@ -68,15 +73,22 @@ function getReceivedMessages (req, res) {
 
 /* *** get chat messages *** */
 async function getChatMessages (req, res) {
+    console.log(req.params)
     let emitterId = req.params.emitter;
     let receiverId = req.params.receiver;
-    let serviceId = req.params.service;
+    let chatId = req.params.chatId;
     
     try {
         let messages = await Message.find({
 
            $and: [
-                {service: serviceId},
+                {$or: [
+                    {service: chatId},
+                    {purchasedService: chatId},
+                    {project: chatId},
+                    {projectStarted: chatId},
+                ]},
+                //{service: serviceId},
                 {$or: [
                     {emitter: emitterId},
                     {receiver: emitterId},
@@ -93,9 +105,10 @@ async function getChatMessages (req, res) {
                 return {
                     fromSelf: message.emitter.toString() === emitterId,
                     message: message.text,
+                    addAt: message.updatedAt,
                 };
             });
-            console.log(chatMessages);
+            //console.log(chatMessages);
             return res.status(200).send(chatMessages);
         }
     } catch (error) {
@@ -116,53 +129,44 @@ async function getLastMessages(req, res) {
         const lastMsgs = await Message.aggregate(
             [
                 {
-                    $match: {
+                    $match:
+                    {
                         $and: [
-                            //{service: {$exists: true, $not: {$size: 0}}},
-                            { comesFrom: comesFrom },
                             {
                                 $or: [
                                     {
-                                        $and: [
-                                            {
-                                            emitter: mongoose.Types.ObjectId(userId),
-                                            },
-                                        ],
+                                        emitter: mongoose.Types.ObjectId(userId),
                                     },
                                     {
-                                        $and: [
-                                            {
-                                            receiver: mongoose.Types.ObjectId(userId),
-                                            },
-                                        ],
+                                        receiver: mongoose.Types.ObjectId(userId),
                                     },
                                 ],
+                            },
+                            {
+                                comesFrom: comesFrom,
                             },
                         ],
                     },
                 },
                 {
-                    $addFields: {
-                        fromTo: {
-                            $cond: {
-                                if: {
-                                    $lt: ["$emitter", "$receiver"],
-                                },
-                                then: ["$emitter", "$receiver"],
-                                else: ["$receiver", "$emitter"],
-                            },
+                    $group:
+                    {
+                        _id: {
+                            comesFrom: "$comesFrom",
+                            service: "$service",
+                            project: "$project",
+                            purchasedService: "$purchasedService",
+                            projectStarted: "$projectStarted",
                         },
-                    },
-                },
-                {
-                    $group: {
-                        _id: "$fromTo",
                         messages: {
                             $addToSet: {
                                 emitter: "$emitter",
                                 receiver: "$receiver",
                                 message: "$text",
                                 service: "$service",
+                                purchasedService: "$purchasedService",
+                                project: "$project",
+                                projectStarted: "$projectStarted",
                                 comesFrom: "$comesFrom",
                                 addAt: "$updatedAt",
                             },
@@ -173,7 +177,8 @@ async function getLastMessages(req, res) {
                     },
                 },
                 {
-                    $addFields: {
+                    $addFields:
+                    {
                         lastMsg: {
                             $arrayElemAt: [
                                 {
@@ -182,8 +187,8 @@ async function getLastMessages(req, res) {
                                         as: "msgs",
                                         cond: {
                                             $eq: [
-                                            "$$msgs.addAt",
-                                            "$lastMessage",
+                                                "$$msgs.addAt",
+                                                "$lastMessage",
                                             ],
                                         },
                                         //limit: 1,
@@ -194,11 +199,18 @@ async function getLastMessages(req, res) {
                         },
                     },
                 },
-                { 
-                    $project: { 
+                {
+                    $project:
+                    {
                         _id: 0,
-                        lastMsg: 1, 
-                    } 
+                        lastMsg: 1,
+                    },
+                },
+                {
+                    $replaceRoot:
+                    {
+                        newRoot: "$lastMsg",
+                    },
                 },
             ]
         );
@@ -208,13 +220,16 @@ async function getLastMessages(req, res) {
         if(lastMsgs.length > 0) {
             let chatMessages = lastMsgs.map(message => {
                 return {
-                    fromSelf: message.lastMsg.emitter.toString() === userId,
-                    emitter: message.lastMsg.emitter,
-                    receiver: message.lastMsg.receiver,
-                    message: message.lastMsg.message,
-                    service: message.lastMsg.service,
-                    comesFrom: message.lastMsg.comesFrom,
-                    addAt: message.lastMsg.addAt,
+                    fromSelf: message.emitter.toString() === userId,
+                    emitter: message.emitter,
+                    receiver: message.receiver,
+                    message: message.message,
+                    service: message.service,
+                    purchasedService: message.purchasedService,
+                    project: message.project,
+                    projectStarted: message.projectStarted,
+                    comesFrom: message.comesFrom,
+                    addAt: message.addAt,
                 };
             });
             console.log(chatMessages);

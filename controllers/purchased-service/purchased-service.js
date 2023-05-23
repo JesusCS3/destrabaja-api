@@ -20,6 +20,8 @@ async function savePurchasedService (req, res) {
         purchasedService.service = params.service;
         purchasedService.user = params.user;
         purchasedService.plan = params.plan;
+        purchasedService.price = params.price;
+        purchasedService.deliverables = params.deliverables;
         purchasedService.extras = params.extras;
         purchasedService.startDate = params.startDate;
         purchasedService.endDate = params.endDate;
@@ -30,7 +32,10 @@ async function savePurchasedService (req, res) {
         
         if(!purchasedServiceStored) return res.status(200).send({message: 'Error al guardar el servicio adquirido!'});
 
-        return res.status(200).send({message: 'El servicio adquirido se guardo con éxito!'});
+        return res.status(200).send({
+          purchasedService: purchasedServiceStored,
+        });
+        
     } catch (error) {
         console.log(error);
         return res.status(500).send({message: 'Error al guardar el servicio adquirido: ' + error});
@@ -98,9 +103,77 @@ async function getPurchasedServicesById (req, res) {
   }
 }
 
+/* *** update status service *** */
+async function updateStatusServicePurchased (req, res) {
+  console.log(req.params);
+  let serviceId = req.params.id;
+  let statusService = req.body;
+  console.log(statusService);
+  await PurchasedService.findOne({'user': req.user.sub, '_id': serviceId}).exec().then((service) => {
+    if (service){
+      /* *** update service *** */
+      PurchasedService.findByIdAndUpdate(serviceId, {status: statusService.status}, {new: true}, (err, serviceUpdated) => {
+        
+        if (err) return res.status(500).send({message: 'Error en la solicitud'});
+    
+        if (!serviceUpdated) return res.status(404).send({message: 'No se ha podido actualizar el estado del servicio'});
+    
+        return res.status(200).send({service: serviceUpdated});
+
+      });
+    }else{
+      return res.status(500).send({message: 'No tiene permiso para actualizar el estado del servicio'});
+    }
+  }).catch((err) => {
+    return res.status(500).send({message: 'Error al actualizar el estado del servicio: ' + err});
+  });
+}
+
+/* *** update dateExtension service *** */
+async function updateDateExtension (req, res) {
+  console.log(req.params);
+  let serviceId = req.params.id;
+  let extension = req.body;
+  console.log(extension);
+  await PurchasedService.findOne({'user': req.user.sub, '_id': serviceId}).exec().then((service) => {
+    if (service){
+      /* *** update date extension *** */
+      PurchasedService.findByIdAndUpdate(serviceId, {dateExtension: extension.dateExtension, extensionReason: extension.extensionReason}, {new: true}, (err, serviceUpdated) => {
+        
+        if (err) return res.status(500).send({message: 'Error en la solicitud'});
+    
+        if (!serviceUpdated) return res.status(404).send({message: 'No se ha podido actualizar la extensión de fecha'});
+    
+        //return res.status(200).send({service: serviceUpdated});
+
+        if(serviceUpdated.dateExtension){
+          /* *** update end date *** */
+          PurchasedService.findByIdAndUpdate(serviceId, {endDate: serviceUpdated.dateExtension}, {new: true}, (err, serviceUpdated) => {
+        
+            if (err) return res.status(500).send({message: 'Error en la solicitud'});
+        
+            if (!serviceUpdated) return res.status(404).send({message: 'No se ha podido actualizar la fecha de finalización'});
+        
+            return res.status(200).send({service: serviceUpdated});
+    
+          });
+        }
+
+
+      });
+    }else{
+      return res.status(500).send({message: 'No tiene permiso para actualizar el estado del servicio'});
+    }
+  }).catch((err) => {
+    return res.status(500).send({message: 'Error al actualizar el estado del servicio: ' + err});
+  });
+}
+
 module.exports = {
     test,
     savePurchasedService,
     getPurchasedServices,
     getPurchasedServicesById,
+    updateStatusServicePurchased,
+    updateDateExtension,
 }

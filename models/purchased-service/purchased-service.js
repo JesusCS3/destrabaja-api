@@ -16,6 +16,13 @@ const purchasedServiceSchema = new mongoose.Schema(
             type: String,
             required: true
         },
+        price: {
+            type: Number,
+            required: true
+        },
+        deliverables: {
+            type: Array,
+        },
         extras: {
             type: Array,
         },
@@ -29,6 +36,9 @@ const purchasedServiceSchema = new mongoose.Schema(
         },
         dateExtension: {
             type: Date,
+        },
+        extensionReason: {
+            type: String
         },
         status: {
             type: String

@@ -14,9 +14,9 @@ router.post('/message', mdAuth.ensureAuth, messageController.saveMessage);
 /* *** get received message *** */
 router.get('/my-messages/:page?', mdAuth.ensureAuth, messageController.getReceivedMessages);
 /* *** get chat messages *** */
-router.get('/chat-messages/:emitter?/:receiver?/:service?', mdAuth.ensureAuth, messageController.getChatMessages);
+router.get('/chat-messages/:emitter?/:receiver?/:chatId?', mdAuth.ensureAuth, messageController.getChatMessages);
 /* *** get last messages *** */
-router.get('/last-messages/:id?/:comesFrom?', mdAuth.ensureAuth, messageController.getLastMessages);
+router.get('/last-messages/:id?/:comesFrom?/:chatId?', mdAuth.ensureAuth, messageController.getLastMessages);
 /* *** get sent message *** */
 router.get('/messages/:page?', mdAuth.ensureAuth, messageController.getSentMessages);
 /* *** unviewed message *** */
