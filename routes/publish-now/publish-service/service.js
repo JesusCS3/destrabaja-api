@@ -17,7 +17,7 @@ router.get('/services-follow/:page?', mdAuth.ensureAuth, serviceController.getSe
 /* *** get services *** */
 router.get('/services/:page?', mdAuth.ensureAuth, serviceController.getServices);
 /* *** get all services *** */
-router.get('/all-services/:page?', mdAuth.ensureAuth, serviceController.getAllServices);
+router.get('/all-services/:page?', serviceController.getAllServices);
 /* *** get services by id *** */
 router.get('/service/:id?', mdAuth.ensureAuth, serviceController.getServicesById);
 /* *** get service purchased by id *** */

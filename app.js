@@ -12,6 +12,7 @@ const projectRoutes = require('./routes/publish-now/publish-project/project');
 const messageRoutes = require('./routes/user/message/message');
 const paymentsRoutes = require('./routes/payments/payments');
 const purchasedServiceRoutes = require('./routes/purchased-service/purchased-service');
+const chimeIntegrationRoutes = require('./routes/chime-integration/chime-integration');
 
 /* *** middleware *** */
 
@@ -36,6 +37,7 @@ app.use('/api', projectRoutes);
 app.use('/api', messageRoutes);
 app.use('/api', paymentsRoutes);
 app.use('/api', purchasedServiceRoutes);
+app.use('/api', chimeIntegrationRoutes);
 
 /* *** export *** */
 module.exports = app;
