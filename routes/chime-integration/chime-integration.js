@@ -7,7 +7,11 @@ const mdAuth = require('../../middlewares/authenticated');
 /* *** test *** */
 router.get('/test-chime', mdAuth.ensureAuth, chimeIntegrationController.test);
 
-/* *** create checkout session *** */
+/* *** create meeting session *** */
 router.post('/videocall', mdAuth.ensureAuth, chimeIntegrationController.createVideoCall);
+/* *** create delete meeting session *** */
+router.post('/deleteVideocall', mdAuth.ensureAuth, chimeIntegrationController.deleteVideoCall);
+/* *** create attendee *** */
+router.post('/deleteAttende', mdAuth.ensureAuth, chimeIntegrationController.deleteAttendee);
 
 module.exports = router;
