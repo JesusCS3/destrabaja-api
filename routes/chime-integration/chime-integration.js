@@ -12,6 +12,6 @@ router.post('/videocall', mdAuth.ensureAuth, chimeIntegrationController.createVi
 /* *** create delete meeting session *** */
 router.post('/deleteVideocall', mdAuth.ensureAuth, chimeIntegrationController.deleteVideoCall);
 /* *** create attendee *** */
-router.post('/deleteAttende', mdAuth.ensureAuth, chimeIntegrationController.deleteAttendee);
+router.post('/deleteAttendee', mdAuth.ensureAuth, chimeIntegrationController.deleteAttendee);
 
 module.exports = router;

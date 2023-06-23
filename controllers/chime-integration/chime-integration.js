@@ -2,6 +2,10 @@
 const AWS = require('aws-sdk');
 const { v4: uuid } = require('uuid');
 
+// You must use "us-east-1" as the region for Chime API and set the endpoint.
+const chime = new AWS.Chime({ region: 'us-east-1' });
+chime.endpoint = new AWS.Endpoint('https://service.chime.aws.amazon.com');
+
 /* *** test *** */
 function test (req, res) {
     res.status(200).send({
@@ -12,23 +16,22 @@ function test (req, res) {
 /* *** create meeting *** */
 async function createVideoCall(req, res){
     let meetingData = req.body;
+    let meetingResponse;
     console.log(meetingData);
-
-    // You must use "us-east-1" as the region for Chime API and set the endpoint.
-    const chime = new AWS.Chime({ region: 'us-east-1' });
-    chime.endpoint = new AWS.Endpoint('https://service.chime.aws.amazon.com');
 
     try {
          /*new meeting */
         if ((meetingData.meetingId === "") || (meetingData.meetingId === null) || 
             (meetingData.meetingId === undefined)) {
             
-            const meetingResponse = await chime
+            meetingResponse = await chime
             .createMeeting({
                 ClientRequestToken: uuid(),
                 MediaRegion: 'us-west-2', // Specify the region in which to create the meeting.
             })
             .promise();
+
+            console.log(meetingResponse);
         }
 
         if(meetingData.meetingId){
@@ -37,11 +40,13 @@ async function createVideoCall(req, res){
             // Fetch meeting details
             try {
                 let meetingId = meetingData.meetingId;
-                const meetingResponse = await chime
+                meetingResponse = await chime
                 .getMeeting({
                     MeetingId: meetingId,
                 })
                 .promise();
+
+                console.log(meetingResponse);
             } catch (error) {
                 console.log(error);
                 return res.status(500).send({message: 'Error: ' + error});
@@ -57,6 +62,7 @@ async function createVideoCall(req, res){
         })
         .promise();
 
+        console.log(attendeeResponse);
         // Respond with these infos so the frontend can safely use it
         return res.status(200).send({
             attendeeResponse,
@@ -66,7 +72,6 @@ async function createVideoCall(req, res){
         console.log(error);
         return res.status(500).send({message: 'Error: ' + error});
     }
-    
 }
 
 /* *** delete meeting *** */
@@ -76,8 +81,7 @@ async function deleteVideoCall(req,res){
 
     try {
         // Delete the meeting
-        const deleteRequest = await chime
-        .deleteMeeting({
+        const deleteRequest = await chime.deleteMeeting({
             MeetingId: meetingData.meetingId,
         }).promise();
 
@@ -93,6 +97,7 @@ async function deleteVideoCall(req,res){
 /* *** delete attendee *** */
 async function deleteAttendee(req,res){
     let meetingData = req.body;
+    console.log('*********meetingData delete attendee*********');
     console.log(meetingData);
 
     try {
