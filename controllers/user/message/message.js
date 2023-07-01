@@ -13,7 +13,7 @@ function test (req, res) {
 async function saveMessage (req, res) {
     const params = req.body;
 
-    console.log(params);
+    //console.log(params);
 
     if(!params.emitter || !params.receiver || !params.text 
         || !params.comesFrom || !params.service) 
@@ -73,7 +73,7 @@ function getReceivedMessages (req, res) {
 
 /* *** get chat messages *** */
 async function getChatMessages (req, res) {
-    console.log(req.params)
+    //console.log(req.params)
     let emitterId = req.params.emitter;
     let receiverId = req.params.receiver;
     let chatId = req.params.chatId;
@@ -121,7 +121,7 @@ async function getChatMessages (req, res) {
 
 /* *** get last messages *** */
 async function getLastMessages(req, res) {
-    console.log(req.params);
+    //console.log(req.params);
     let userId = req.params.id;
     let comesFrom = req.params.comesFrom;
 
@@ -215,7 +215,7 @@ async function getLastMessages(req, res) {
             ]
         );
 
-        console.log(lastMsgs);
+        //console.log(lastMsgs);
 
         if(lastMsgs.length > 0) {
             let chatMessages = lastMsgs.map(message => {
@@ -232,7 +232,7 @@ async function getLastMessages(req, res) {
                     addAt: message.addAt,
                 };
             });
-            console.log(chatMessages);
+            //console.log(chatMessages);
             await Message.populate(chatMessages, (
                 {
                     path: 'emitter , receiver',
