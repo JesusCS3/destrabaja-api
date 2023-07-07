@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const app = require('./app');
-require('dotenv').config();
+//require('dotenv').config();
 const port = process.env.PORT || 3800;
 
 const DB_URI = `mongodb+srv://JesusCS:Desarrollo29Mongo@jcscluster.5hq4xqy.mongodb.net/destrabaja_db`;
