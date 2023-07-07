@@ -18,7 +18,8 @@ async function savePurchasedService (req, res) {
         let purchasedService = new PurchasedService();
 
         purchasedService.service = params.service;
-        purchasedService.user = params.user;
+        purchasedService.buyingUser = params.buyingUser;
+        purchasedService.sellingUser = params.sellingUser;
         purchasedService.plan = params.plan;
         purchasedService.price = params.price;
         purchasedService.deliverables = params.deliverables;

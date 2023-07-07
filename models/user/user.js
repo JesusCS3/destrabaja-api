@@ -19,7 +19,11 @@ const userSchema = new mongoose.Schema(
     password: {
         type: String,
         required: true
-    }
+    },
+    checkTyC: {
+        type: Boolean,
+        required: true
+    },
     },
     {
     timestamps: true

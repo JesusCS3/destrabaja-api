@@ -7,7 +7,12 @@ const purchasedServiceSchema = new mongoose.Schema(
             ref: 'service',
             required: true
         },
-        user: {
+        buyingUser: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'user',
+            required: true
+        },
+        sellingUser: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'user',
             required: true

@@ -65,56 +65,6 @@ async function saveService (req, res) {
       console.log(error);
       return res.status(500).send({message: '¡Error al guardar el servicio!'});
   }
-
-  /*
-  let service = new Service();
-  if (params.generalInfo.name && params.generalInfo.category && params.generalInfo.subcategory
-    && params.description.shortDescription){
-    service.name = params.generalInfo.name;
-    service.hashtags = params.generalInfo.hashtags;
-    service.category = params.generalInfo.category;
-    service.subcategory = params.generalInfo.subcategory;
-    service.videoService = null;
-    service.images = null;
-    service.shortDescription = params.description.shortDescription;
-    service.longDescription = params.description.longDescription;
-    service.checkPlanTwo = params.levels.checkPlanTwo;
-    service.checkPlanThree = params.levels.checkPlanThree;
-    service.namePlanOne = params.levels.namePlanOne;
-    service.namePlanTwo = params.levels.namePlanTwo;
-    service.namePlanThree = params.levels.namePlanThree;
-    service.deliverables = params.levels.deliverables;
-    service.deliveryTimePlanOne = params.levels.deliveryTimePlanOne;
-    service.deliveryTimePlanTwo = params.levels.deliveryTimePlanTwo;
-    service.deliveryTimePlanThree = params.levels.deliveryTimePlanThree;
-    service.commentPlanOne = params.levels.commentPlanOne;
-    service.commentPlanTwo = params.levels.commentPlanTwo;
-    service.commentPlanThree = params.levels.commentPlanThree;
-    service.pricePlanOne = params.levels.pricePlanOne;
-    service.pricePlanTwo = params.levels.pricePlanTwo;
-    service.pricePlanThree = params.levels.pricePlanThree;
-    service.clientPricePlanOne = params.levels.clientPricePlanOne;
-    service.clientPricePlanTwo = params.levels.clientPricePlanTwo;
-    service.clientPricePlanThree = params.levels.clientPricePlanThree;
-    service.extras = params.extras.extras;
-    service.requirement = params.requirements.requirement;
-    service.status = 'active';
-    service.user = req.user.sub;
-
-    service.save((err, serviceStored) => {
-      if (err) return res.status(500).send({message: '¡Error al guardar el servicio!' + err});
-
-      if (!serviceStored) return res.status(404).send({message: '¡No se ha guardado el servicio!'});
-
-      return res.status(200).send({service: serviceStored});
-    });
-
-  }else{
-    return res.status(200).send({
-      message: '¡Rellene todos los campos obligatorios!'
-    }); 
-  }
-  */
 }
 
 /* *** get services from people I follow *** */
@@ -323,24 +273,69 @@ async function deleteService (req, res) {
 }
 
 /* *** update service data *** */
-function updateService (req, res) {
+async function updateService (req, res) {
   let serviceId = req.params.id;
   let update = req.body;
+  let userId = update.user;
+  
 
-  Service. findOne({'user': req.user.sub, '_id': serviceId}).exec().then((service) => {
-    if (service){
-      /* *** update service *** */
-      Service.findByIdAndUpdate(serviceId, update, {new: true}, (err, serviceUpdated) => {
-        if (err) return res.status(500).send({message: 'Error in request'});
-    
-        if (!serviceUpdated) return res.status(404).send({message: 'Could not update service data'});
-    
-        return res.status(200).send({service: serviceUpdated});
+  console.log(serviceId);
+  console.log(userId);
+  console.log(update);
+
+  if(!update.generalInfo.name || !update.generalInfo.category || !update.generalInfo.subcategory
+    || !update.description.shortDescription)
+    return res.status(200).send({message: 'Rellene todos los campos obligatorios!'});
+  
+  try {
+    let updateData = {
+      name: update.generalInfo.name,
+      hashtags: update.generalInfo.hashtags,
+      category: update.generalInfo.category,
+      subcategory: update.generalInfo.subcategory,
+      shortDescription: update.description.shortDescription,
+      longDescription: update.description.longDescription,
+      checkPlanTwo: update.levels.checkPlanTwo,
+      checkPlanThree: update.levels.checkPlanThree,
+      namePlanOne: update.levels.namePlanOne,
+      namePlanTwo: update.levels.namePlanTwo,
+      namePlanThree: update.levels.namePlanThree,
+      deliverables: update.levels.deliverables,
+      deliveryTimePlanOne: update.levels.deliveryTimePlanOne,
+      deliveryTimePlanTwo: update.levels.deliveryTimePlanTwo,
+      deliveryTimePlanThree: update.levels.deliveryTimePlanThree,
+      commentPlanOne: update.levels.commentPlanOne,
+      commentPlanTwo: update.levels.commentPlanTwo,
+      commentPlanThree: update.levels.commentPlanThree,
+      pricePlanOne: update.levels.pricePlanOne,
+      pricePlanTwo: update.levels.pricePlanTwo,
+      pricePlanThree: update.levels.pricePlanThree,
+      clientPricePlanOne: update.levels.clientPricePlanOne,
+      clientPricePlanTwo: update.levels.clientPricePlanTwo,
+      clientPricePlanThree: update.levels.clientPricePlanThree,
+      extras: update.extras.extras,
+      requirement: update.requirements.requirement,
+    };
+
+    console.log(updateData);
+
+    let service = await Service.findOne({'user': userId, '_id': serviceId});
+        
+    if(!service) return res.status(404).send({message: '¡Servicio no encontrado!'});
+
+    if(service){
+      let serviceUpdate = await Service.findByIdAndUpdate(serviceId, updateData, {new: true});
+
+      if(!serviceUpdate) return res.status(200).send({message: '¡Error al actualizar el servicio!'});
+
+      return res.status(200).send({
+        service: serviceUpdate,
       });
-    }else{
-      return res.status(500).send({message: 'Does not have permission to update service data'});
     }
-  });
+  } catch (error) {
+      console.log(error);
+      return res.status(500).send({message: '¡Error al actualizar el servicio!'});
+  }
 }
 
 /* *** update status service *** */

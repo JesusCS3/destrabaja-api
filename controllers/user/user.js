@@ -23,48 +23,50 @@ function home (req, res) {
 }
 
 /* *** signup *** */
-function saveUser (req, res) {
+async function saveUser (req, res) {
   let params = req.body;
-  let user = new User();
 
-  if (params.email && params.username && params.password) {
+  console.log(params);
+
+  if(!params.email || !params.username || !params.password || !params.checkTyC)
+    return res.status(200).send({message: '¡Rellene todos los campos obligatorios!'});
+
+  try {
+    let user = new User();
+
     user.image = null;
     user.username = params.username;
     user.email = params.email;
     user.phone = params.phone;
+    user.checkTyC = params.checkTyC;
 
     /* *** control duplicate users *** */
-    User.find({
+    let duplicateUser = await User.find({
       $or: [
         {username: user.username},
         {email: user.email.toLowerCase()}
       ]
-    }).exec((err, users) => {
-      if(err) return res.status(500).send({message: 'Error en la solicitud del usuario.'});
-
-      if(users && users.length >= 1){
-        return res.status(200).send({message: 'Ya existe una cuenta con el usuario o correo electrónico indicado.'});
-      }else{
-        bcrypt.hash(params.password, null, null, (err, hash) => {
-          user.password = hash;
-
-          /* *** store data *** */
-          user.save((err, userStored) =>{
-            if(err) return res.status(500).send({message: 'Error al guardar el usuario.'});
-
-            if(userStored){
-              res.status(200).send({user: userStored});
-            }else{
-              res.status(404).send({message: 'El usuario no se ha registrado.'});
-            }
-          });
-        });
-      }
     });
-  }else{
-    res.status(200).send({
-      message: '¡Rellene todos los campos obligatorios!'
-    });  
+
+    if(duplicateUser && duplicateUser.length >= 1){
+      return res.status(200).send({message: '¡El usuario ya existe!'});
+    }
+
+    bcrypt.hash(params.password, null, null, async (err, hash) => {
+      if(err) return res.status(500).send({message: 'Error: ' + err});
+
+      user.password = hash;
+
+      /* *** store data *** */
+      let userStored = await user.save();
+        
+      if(!userStored) return res.status(200).send({message: 'Error al guardar el usuario!'});
+
+      return res.status(200).send({user: userStored});
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({message: 'Error al guardar el usuario: ' + error});
   }
 }
 

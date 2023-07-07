@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const app = require('./app');
-const purchasedService = require('./models/purchased-service/purchased-service');
 require('dotenv').config();
 const port = process.env.PORT || 3800;
 
