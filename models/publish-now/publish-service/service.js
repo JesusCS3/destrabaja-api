@@ -95,6 +95,23 @@ const serviceSchema = new mongoose.Schema(
     },
     createdAt: {
         type: Date,
+        default: Date.now,
+    },
+    views: { 
+        type: Number, 
+        default: 0 
+    },
+    likes: { 
+        type: Number, 
+        default: 0 
+    },
+    purchased: { 
+        type: Number, 
+        default: 0 
+    },
+    score: { 
+        type: Number, 
+        default: 0 
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,

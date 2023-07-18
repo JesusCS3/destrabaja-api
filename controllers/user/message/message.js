@@ -13,7 +13,8 @@ function test (req, res) {
 async function saveMessage (req, res) {
     const params = req.body;
 
-    //console.log(params);
+    console.log('imprimiendo desde guardar mensaje');
+    console.log(params);
 
     if(!params.emitter || !params.receiver || !params.text 
         || !params.comesFrom || !params.service) 
@@ -28,8 +29,6 @@ async function saveMessage (req, res) {
         message.comesFrom = params.comesFrom;
         message.viewed = false; 
         message.service = params.service;
-
-        //campos de prueba
         message.purchasedService = params.purchasedService;
         message.project = params.project;
         message.projectStarted = params.projectStarted;

@@ -364,6 +364,56 @@ console.log(statusService);
   });
 }
 
+/* *** update views service *** */
+async function incrementViews(req,res){
+  console.log(req.params);
+  let serviceId = req.params.id;
+  console.log(serviceId);
+
+  try {
+    const updatedService = await Service.findOneAndUpdate(serviceId, { $inc: { views: 1 } }).lean();
+
+    if(!updatedService) return res.status(500).send({message: '¡Error al incrementar vistas del servicio!'});
+
+    console.log(updatedService);
+
+    return res.status(200).send({
+      service: updatedService,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({message: '¡Error al actualizar las vistas del servicio!'});
+  }
+}
+
+/* *** update likes service *** */
+async function incrementLikes(req,res){
+  console.log(req.params);
+  let serviceId = req.params.id;
+  console.log(serviceId);
+
+  try {
+    const updatedService = await Service.findOne(serviceId);
+
+    if(!updatedService) return res.status(500).send({message: '¡Error al incrementar likes del servicio!'});
+
+    console.log(updatedService);
+
+    if(updatedService){
+      updatedService.likes = updatedService.likes + 1;
+      await updatedService.save();
+  
+      return res.status(200).send({
+        likes: updatedService.likes,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({message: '¡Error al actualizar los likes del servicio!'});
+  }
+}
+
+/* *** update images service *** */
 async function uploadImage (req, res) {
   let serviceId = req.params.id;
   let filePath, fileSplit, fileName, extSplit, fileExt;
@@ -549,6 +599,8 @@ module.exports = {
     deleteService,
     updateService,
     updateStatusService,
+    incrementViews,
+    incrementLikes,
     uploadImage,
     getImageFile,
     uploadVideo,

@@ -1,4 +1,5 @@
-const stripe = require('stripe')('sk_test_51MwDleIwsetuaGMFhpPXCbL7WO5kR8pKrAvllLkAlGVUfaReUkrEglfduHn1iliu016smUMh7l84gtRjoLiJOVUY007kfkdegr');
+require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPESK);
 
 /* *** test *** */
 function test (req, res) {

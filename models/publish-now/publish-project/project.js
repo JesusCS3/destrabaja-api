@@ -53,6 +53,18 @@ const projectSchema = new mongoose.Schema(
     createdAt: {
         type: Date,
     },
+    views: { 
+        type: Number, 
+        default: 0 
+    },
+    likes: { 
+        type: Number, 
+        default: 0 
+    },
+    score: { 
+        type: Number, 
+        default: 0 
+    },
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user'

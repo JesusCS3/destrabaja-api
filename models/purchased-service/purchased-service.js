@@ -35,7 +35,7 @@ const purchasedServiceSchema = new mongoose.Schema(
             type: Date,
             required: true,
         },
-        endDate: {
+        deadlineDate: {
             type: Date,
             required: true,
         },
@@ -45,8 +45,15 @@ const purchasedServiceSchema = new mongoose.Schema(
         extensionReason: {
             type: String
         },
+        endDate: {
+            type: Date,
+        },
         status: {
             type: String
+        },
+        extCount: { 
+            type: Number, 
+            default: 0 
         },
         createdAt: {
             type: Date,

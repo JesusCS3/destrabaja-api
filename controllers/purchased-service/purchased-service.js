@@ -11,7 +11,7 @@ function test (req, res) {
 async function savePurchasedService (req, res) {
     let params = req.body;
 
-    if (!params.service || !params.user || !params.plan || !params.startDate || !params.endDate) 
+    if (!params.service || !params.buyingUser || !params.sellingUser || !params.plan || !params.startDate || !params.deadlineDate) 
     return res.status(200).send({message: 'Por favor, rellene todos los campos!'});
 
     try {
@@ -25,8 +25,10 @@ async function savePurchasedService (req, res) {
         purchasedService.deliverables = params.deliverables;
         purchasedService.extras = params.extras;
         purchasedService.startDate = params.startDate;
-        purchasedService.endDate = params.endDate;
+        purchasedService.deadlineDate = params.deadlineDate;
         purchasedService.dateExtension = params.dateExtension;
+        purchasedService.extensionReason = params.extensionReason;
+        purchasedService.endDate = params.endDate;
         purchasedService.status = params.status;
 
         let purchasedServiceStored = await purchasedService.save();
@@ -45,8 +47,8 @@ async function savePurchasedService (req, res) {
 
 /* *** get services purchased *** */
 async function getPurchasedServices (req, res) {
-    console.log(req.user.sub);
-    console.log(req.params.page);
+    //console.log(req.user.sub);
+    //console.log(req.params.page);
   let userId = req.user.sub;
   let page = 1;
 
@@ -59,7 +61,7 @@ async function getPurchasedServices (req, res) {
     await PurchasedService.find({user: userId}).sort('-createdAt').
     populate('service', {images:1, name:1, user:1, namePlanOne:1, namePlanTwo:1, namePlanThree:1}).
     paginate(page, itemsPerPage, (err, purchased, total) => {
-        console.log(purchased);
+        //console.log(purchased);
         if (err) return res.status(500).send({message: 'Error al regresar servicios adquiridos: ' + err});
         
         if(!purchased) return res.status(200).send({message: 'No hay servicios adquiridos!'});
@@ -83,10 +85,14 @@ async function getPurchasedServicesById (req, res) {
     populate({
       path: 'service',
       select: 'images name user namePlanOne namePlanTwo namePlanThree deliverables',
-      populate: {
-        path: 'user',
-        select: 'username image',
-      }
+      //populate: {
+      //  path: 'sellingUser',
+      //  select: 'username image',
+      //}
+    }).
+    populate({
+      path: 'sellingUser',
+      select: 'username image',
     });
     //populate('service', {images:1, name:1, user:1, namePlanOne:1, namePlanTwo:1, namePlanThree:1, deliverables:1}).
     //populate('service.user', {image:1, username:1});
